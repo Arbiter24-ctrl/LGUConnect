@@ -1,0 +1,244 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
+import { Input } from "../../components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
+import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText } from "lucide-react"
+import { useUser } from "../../lib/user-context"
+
+function ProfilePage() {
+  const { user, loading } = useUser()
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    bio: "",
+    role: "user",
+  });
+  const [editing, setEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Use user context data
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: `${user.first_name} ${user.last_name}`,
+        email: user.email,
+        bio: "", // Bio field not available in User type
+        role: user.role,
+      });
+      setIsLoading(false);
+    } else if (!userLoading) {
+      setIsLoading(false);
+    }
+  }, [user, userLoading]);
+
+  const handleChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handleRoleChange = (value) => {
+    setProfile({ ...profile, role});
+  };
+
+  const handleEdit = () => setEditing(true);
+
+  const handleCancel = () => setEditing(false);
+
+  const handleSave = () => {
+    // Replace with real API call to save profile
+    setEditing(false);
+  };
+
+  if (loading || userLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Clock className="animate-spin mr-2" />
+        Loading profile...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Please log in to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full px-6 py-6">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Profile</h1>
+            <p className="text-muted-foreground">Manage your account information and preferences</p>
+          </div>
+          <Badge variant="outline" className="text-sm capitalize">
+            {profile.role}
+          </Badge>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-5">
+          {/* Profile Information */}
+          <div className="lg:col-span-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
+                  Update your personal details and contact information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    handleSave();
+                  }}
+                  className="space-y-6"
+                >
+                  <div className="grid gap-4 xl:grid-cols-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="name">
+                        Full Name
+                      </label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={profile.name}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        required
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="email">
+                        Email Address
+                      </label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={profile.email}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        required
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="role">
+                        Role
+                      </label>
+                      <Select
+                        value={profile.role}
+                        onValueChange={handleRoleChange}
+                        disabled={!editing}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="resident">Resident</SelectItem>
+                          <SelectItem value="official">Official</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="bio">
+                      Bio
+                    </label>
+                    <textarea
+                      id="bio"
+                      name="bio"
+                      className="w-full min-h-[100px] border rounded-md px-3 py-2 text-sm resize-none"
+                      value={profile.bio}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      placeholder="Tell us about yourself..."
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    {editing ? (
+                      <>
+                        <Button type="submit" className="min-w-24">
+                          Save Changes
+                        </Button>
+                        <Button type="button" variant="outline" onClick={handleCancel}>
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button type="button" variant="default" onClick={handleEdit} className="min-w-24">
+                        Edit Profile
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Profile Stats & Actions */}
+          <div className="space-y-6">
+            {/* Profile Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Profile Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Member since</span>
+                  <span className="text-sm font-medium">Jan 2024</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Complaints submitted</span>
+                  <span className="text-sm font-medium">12</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Profile views</span>
+                  <span className="text-sm font-medium">45</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  View Messages
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <FileText className="mr-2 h-4 w-4" />
+                  My Complaints
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Activity
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ProfilePage;
