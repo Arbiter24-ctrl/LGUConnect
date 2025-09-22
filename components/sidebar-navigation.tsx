@@ -44,6 +44,11 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
       href: '/complaints',
       icon: FileText,
       show: true
+    },{
+      name: 'Trends',
+      href: '/trend',
+      icon: BarChart3,
+      show: true
     }
   ]
 
