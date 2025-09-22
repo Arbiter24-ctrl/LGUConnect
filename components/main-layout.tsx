@@ -13,7 +13,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname()
 
   // Pages that should not have sidebar navigation
-  const noSidebarPages = ['/login', '/register']
+  const noSidebarPages = ['/login', '/register', '/']
   const shouldShowSidebar = user && !noSidebarPages.includes(pathname)
 
   if (loading) {
