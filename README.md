@@ -1,7 +1,13 @@
 
-# Project Architecture Overview
 
-## Frontend Components
+
+
+# Project Architecture Overview <img src="https://media.giphy.com/media/hvRJCLFzcasrR4ia7z/giphy.gif" width="30"/>
+
+
+## Frontend Components 
+<marquee>⚡ 🖥️ 📱 🎨 🚀</marquee>
+
 
 The frontend is built with Next.js 14 and React 18, using modern UI libraries for a responsive and dynamic user experience.
 
