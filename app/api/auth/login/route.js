@@ -39,7 +39,7 @@ export async function POST(request) {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
     })
 
-    // Set session cookie
+    // Return session token in response body for client-side storage
     const response = NextResponse.json({
       success: true,
       data: {
@@ -50,15 +50,18 @@ export async function POST(request) {
           last_name: user.last_name,
           role: user.role,
           barangay: user.barangay
-        }
+        },
+        session: session // Include session token in response
       }
     })
 
+    // Also set session cookie as backup
     response.cookies.set('session', session, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for localhost development
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 // 7 days
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/' // Ensure cookie is available for all paths
     })
 
     return response

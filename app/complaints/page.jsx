@@ -10,7 +10,7 @@ import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText } from "luci
 
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
@@ -20,6 +20,9 @@ export default function ComplaintsPage() {
   }, [])
 
   const fetchComplaints = async () => {
+    // Set loading to false immediately to show page
+    setLoading(false)
+    
     try {
       const response = await fetch("/api/complaints")
       const result = await response.json()
@@ -29,8 +32,6 @@ export default function ComplaintsPage() {
       }
     } catch (error) {
       console.error("Error fetching complaints:", error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -44,16 +45,17 @@ export default function ComplaintsPage() {
     return matchesSearch && matchesStatus && matchesPriority
   })
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading complaints...</p>
-        </div>
-      </div>
-    )
-  }
+  // Remove loading state - show page immediately
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-[400px]">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+  //         <p className="text-muted-foreground">Loading complaints...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="container mx-auto px-6 py-6">

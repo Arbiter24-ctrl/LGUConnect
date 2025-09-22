@@ -39,13 +39,13 @@ export async function GET(request) {
     const sql = `
       SELECT 
         c.*,
-        cat.name ,
-        cat.color ,
+        cat.name as category_name,
+        cat.color as category_color,
         u.first_name,
         u.last_name,
         u.email,
-        assigned.first_name ,
-        assigned.last_name 
+        assigned.first_name as assigned_first_name,
+        assigned.last_name as assigned_last_name
       FROM complaints c
       LEFT JOIN complaint_categories cat ON c.category_id = cat.id
       LEFT JOIN users u ON c.user_id = u.id

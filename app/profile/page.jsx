@@ -9,56 +9,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText } from "lucide-react"
 import { useUser } from "../../lib/user-context"
 
-function ProfilePage() {
+export default function ProfilePage() {
   const { user, loading } = useUser()
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     bio: "",
     role: "user",
-  });
-  const [editing, setEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  })
+  const [editing, setEditing] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Use user context data
+  // Use user context data with proper error handling
   useEffect(() => {
-    if (user) {
-      setProfile({
-        name: `${user.first_name} ${user.last_name}`,
-        email: user.email,
-        bio: "", // Bio field not available in User type
-        role: user.role,
-      });
-      setIsLoading(false);
-    } else if (!userLoading) {
-      setIsLoading(false);
+    try {
+      if (user && user.first_name && user.last_name && user.email && user.role) {
+        setProfile({
+          name: `${user.first_name} ${user.last_name}`,
+          email: user.email,
+          bio: "", // Bio field not available in User type
+          role: user.role,
+        })
+        setIsLoading(false)
+      } else if (!loading) {
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('ProfilePage useEffect error:', error)
+      setIsLoading(false)
     }
-  }, [user, userLoading]);
+  }, [user, loading])
 
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
+    setProfile({ ...profile, [e.target.name]: e.target.value })
+  }
 
   const handleRoleChange = (value) => {
-    setProfile({ ...profile, role});
-  };
+    setProfile({ ...profile, role: value })
+  }
 
-  const handleEdit = () => setEditing(true);
+  const handleEdit = () => setEditing(true)
 
-  const handleCancel = () => setEditing(false);
+  const handleCancel = () => setEditing(false)
 
   const handleSave = () => {
     // Replace with real API call to save profile
-    setEditing(false);
-  };
+    setEditing(false)
+  }
 
-  if (loading || userLoading) {
+  if (loading || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Clock className="animate-spin mr-2" />
         Loading profile...
       </div>
-    );
+    )
   }
 
   if (!user) {
@@ -69,7 +74,7 @@ function ProfilePage() {
           <p className="text-muted-foreground">Please log in to view your profile.</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -99,8 +104,8 @@ function ProfilePage() {
               <CardContent>
                 <form
                   onSubmit={e => {
-                    e.preventDefault();
-                    handleSave();
+                    e.preventDefault()
+                    handleSave()
                   }}
                   className="space-y-6"
                 >
@@ -238,7 +243,5 @@ function ProfilePage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
-
-export default ProfilePage;

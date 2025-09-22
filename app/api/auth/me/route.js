@@ -3,9 +3,26 @@ import { verifySession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { ApiResponse, User } from '@/lib/types'
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const session = await verifySession()
+    // Check for session in cookie first
+    let session = await verifySession()
+    
+    // If no session in cookie, check Authorization header
+    if (!session) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7)
+        try {
+          const { jwtVerify } = await import('jose')
+          const secret = new TextEncoder().encode('your-super-secret-jwt-key-change-this-in-production-12345')
+          const { payload } = await jwtVerify(token, secret)
+          session = payload
+        } catch (error) {
+          console.log('❌ Auth: Invalid token in Authorization header')
+        }
+      }
+    }
     
     if (!session) {
       return NextResponse.json(

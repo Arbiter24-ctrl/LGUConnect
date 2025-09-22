@@ -5,7 +5,7 @@ import { useUser } from '../lib/user-context'
 import { usePathname } from 'next/navigation'
 
 export function MainLayout({ children }) {
-  const { user, loading } = useUser()
+  const { user, loading, isLoggingOut } = useUser()
   const pathname = usePathname()
 
   // Pages that should not have sidebar navigation
@@ -24,7 +24,7 @@ export function MainLayout({ children }) {
   }
 
   // If user is not logged in and on a protected page, redirect to login
-  if (!user && !noSidebarPages.includes(pathname)) {
+  if (!user && !noSidebarPages.includes(pathname) && !isLoggingOut) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -36,6 +36,18 @@ export function MainLayout({ children }) {
           >
             Go to Login
           </a>
+        </div>
+      </div>
+    )
+  }
+
+  // If logging out, show loading or redirect immediately
+  if (isLoggingOut) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Logging out...</p>
         </div>
       </div>
     )

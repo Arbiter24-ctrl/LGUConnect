@@ -14,79 +14,111 @@ import { useUser } from "../../lib/user-context"
 const SettingsPage = () => {
   const { user, loading } = useUser()
   const [settings, setSettings] = useState({
-    notifications,
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    },
     privacy: {
       profileVisibility: "public",
-      showEmail,
-      allowMessages,
+      showEmail: true,
+      allowMessages: true
+    },
     appearance: {
       theme: "system",
-      language: "en",
+      language: "en"
     },
-    account,
-      sessionTimeout: "30",
+    account: {
+      twoFactor: false,
+      sessionTimeout: "30"
     }
   })
   const [isLoading, setIsLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      setIsLoading(false)
-    } else if (!userLoading) {
+    try {
+      if (user) {
+        setIsLoading(false)
+      } else if (!loading) {
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('SettingsPage useEffect error:', error)
       setIsLoading(false)
     }
-  }, [user, userLoading])
+  }, [user, loading])
 
   const handleNotificationChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [key]: value
-      }
-    }))
+    try {
+      setSettings(prev => ({
+        ...prev,
+        notifications: {
+          ...prev.notifications,
+          [key]: value
+        }
+      }))
+    } catch (error) {
+      console.error('Error updating notification setting:', error)
+    }
   }
 
   const handlePrivacyChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      privacy: {
-        ...prev.privacy,
-        [key]: value
-      }
-    }))
+    try {
+      setSettings(prev => ({
+        ...prev,
+        privacy: {
+          ...prev.privacy,
+          [key]: value
+        }
+      }))
+    } catch (error) {
+      console.error('Error updating privacy setting:', error)
+    }
   }
 
   const handleAppearanceChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      appearance: {
-        ...prev.appearance,
-        [key]: value
-      }
-    }))
+    try {
+      setSettings(prev => ({
+        ...prev,
+        appearance: {
+          ...prev.appearance,
+          [key]: value
+        }
+      }))
+    } catch (error) {
+      console.error('Error updating appearance setting:', error)
+    }
   }
 
   const handleAccountChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      account: {
-        ...prev.account,
-        [key]: value
-      }
-    }))
+    try {
+      setSettings(prev => ({
+        ...prev,
+        account: {
+          ...prev.account,
+          [key]: value
+        }
+      }))
+    } catch (error) {
+      console.error('Error updating account setting:', error)
+    }
   }
 
   const handleSave = async () => {
-    setSaving(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSaving(false)
-    // In a real app, you'd save to your backend here
+    try {
+      setSaving(true)
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setSaving(false)
+      // In a real app, you'd save to your backend here
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      setSaving(false)
+    }
   }
 
-  if (loading || userLoading) {
+  if (loading || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Settings className="animate-spin mr-2" />

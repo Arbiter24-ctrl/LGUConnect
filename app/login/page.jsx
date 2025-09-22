@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '../../lib/user-context'
 import Link from 'next/link'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
@@ -11,6 +12,7 @@ import { Alert, AlertDescription } from '../../components/ui/alert'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
+  const { login } = useUser()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,6 +35,7 @@ export default function LoginPage() {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent
         headers: {
           'Content-Type': 'application/json',
         },
@@ -42,6 +45,14 @@ export default function LoginPage() {
       const result = await response.json()
 
       if (result.success) {
+        // Store session token in localStorage
+        if (result.data.session) {
+          localStorage.setItem('session', result.data.session)
+        }
+        
+        // Update user context
+        login(result.data.user)
+        
         // Redirect based on user role
         if (result.data.user.role === 'admin' || result.data.user.role === 'official') {
           router.push('/dashboard')

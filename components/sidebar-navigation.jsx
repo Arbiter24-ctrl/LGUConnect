@@ -11,53 +11,65 @@ import {
   FileText, 
   BarChart3,
   Menu,
-  X
+  X,
+  Home,
+  MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '../lib/utils'
 
 export function SidebarNavigation({ className }) {
   const { user, logout } = useUser()
   const router = useRouter()
+  const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
-    await logout()
-    router.push('/login')
+    // Immediately redirect to prevent any delay
+    window.location.href = '/login'
+    
+    // Clear state in background
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   const navigationItems = [
     {
       name: 'Dashboard',
       href: '/dashboard',
-      icon,
-      show,
+      icon: Home,
+      show: true,
     },
     {
       name: 'Manage Complaints',
       href: '/complaints',
-      icon,
-      show,
+      icon: MessageSquare,
+      show: true,
     },
     {
       name: 'Trends',
       href: '/trend',
-      icon,
-      show,
+      icon: BarChart3,
+      show: true,
     },
+ 
+  ]
+
+  const userMenuItems = [
     {
       name: 'Profile',
       href: '/profile',
-      icon,
-      show,
+      icon: User,
     },
     {
       name: 'Settings',
       href: '/settings',
       icon: Settings,
-      show,
     }
   ]
 
@@ -108,12 +120,19 @@ export function SidebarNavigation({ className }) {
               if (!item.show) return null
               
               const Icon = item.icon
+              const isActive = pathname === item.href
+              
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    isActive 
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-accent hover:text-accent-foreground"
+                  )}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
@@ -149,12 +168,19 @@ export function SidebarNavigation({ className }) {
               <div className="space-y-1 mb-4">
                 {userMenuItems.map((item) => {
                   const Icon = item.icon
+                  const isActive = pathname === item.href
+                  
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      className={cn(
+                        "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                        isActive 
+                          ? "bg-primary text-primary-foreground" 
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
                     >
                       <Icon className="h-4 w-4" />
                       <span>{item.name}</span>
@@ -192,3 +218,4 @@ export function SidebarNavigation({ className }) {
     </>
   )
 }
+

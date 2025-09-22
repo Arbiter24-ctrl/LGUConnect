@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useUser } from "../../lib/user-context"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
@@ -31,18 +33,42 @@ import {
 } from "lucide-react"
 
 export default function OfficialsDashboard() {
+  const { user, loading: userLoading } = useUser()
+  const router = useRouter()
   const [complaints, setComplaints] = useState([])
   const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    console.log('🔍 Dashboard: useEffect triggered', { userLoading, user })
+    
+    // Check authentication immediately
+    if (!userLoading && !user) {
+      console.log('❌ Dashboard: No user found, redirecting to login')
+      router.push('/login')
+      return
+    }
+    
+    if (!userLoading && user && user.role !== 'admin' && user.role !== 'official') {
+      console.log('❌ Dashboard: User role not authorized:', user.role)
+      router.push('/')
+      return
+    }
+    
+    // Fetch data immediately if user is available, don't wait for userLoading
+    if (user) {
+      console.log('✅ Dashboard: User authorized, fetching data')
+      fetchDashboardData()
+    }
+  }, [user, userLoading, router])
 
   const fetchDashboardData = async () => {
+    // Set loading to false immediately to show dashboard
+    setLoading(false)
+    
     try {
       // Fetch complaints
       const complaintsResponse = await fetch("/api/complaints")
@@ -60,18 +86,16 @@ export default function OfficialsDashboard() {
         const urgent = complaintsResult.data.filter((c) => c.priority === "urgent").length
 
         setStats({
-          total_complaints,
-          pending_complaints,
-          resolved_complaints,
-          urgent_complaints,
+          total_complaints: total,
+          pending_complaints: pending,
+          resolved_complaints: resolved,
+          urgent_complaints: urgent,
           avg_resolution_time: 5.2,
-          satisfaction_rate
+          satisfaction_rate: 85
         })
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -110,15 +134,20 @@ export default function OfficialsDashboard() {
     { priority: "Urgent", count: 5, color: "#dc2626" }
   ]
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background dark flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    )
+  // Remove loading state - show dashboard immediately
+  // if (userLoading || loading) {
+  //   return (
+  //     <div className="min-h-screen bg-background dark flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+  //         <p className="text-muted-foreground">Loading dashboard...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
+
+  if (!user) {
+    return null // Will redirect to login
   }
 
   return (

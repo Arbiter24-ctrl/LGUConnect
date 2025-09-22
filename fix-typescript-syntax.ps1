@@ -40,3 +40,4 @@ foreach ($file in $files) {
 }
 
 Write-Host "All TypeScript syntax fixed!"
+
