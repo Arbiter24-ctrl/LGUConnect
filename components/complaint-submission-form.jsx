@@ -19,18 +19,25 @@ export function ComplaintSubmissionForm() {
   const { user, loading } = useUser()
   const [currentStep, setCurrentStep] = useState(1)
   const [categories, setCategories] = useState([])
+  const [barangays, setBarangays] = useState([])
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     category_id: "",
     location_address: "",
+    barangay_id: "",
     user_id: user?.id || 0,
+    // Anonymous contact fields
+    anonymous_name: "",
+    anonymous_email: "",
+    anonymous_phone: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [attachments, setAttachments] = useState([])
-  const [aiClassification, setAiClassification] = useState(null)
+  const [classification, setClassification] = useState(null)
   const [isClassifying, setIsClassifying] = useState(false)
+  const [classificationSource, setClassificationSource] = useState(null)
 
   // Update user_id when user changes
   useEffect(() => {
@@ -39,9 +46,10 @@ export function ComplaintSubmissionForm() {
     }
   }, [user])
 
-  // Load categories on component mount
+  // Load categories and barangays on component mount
   useEffect(() => {
     fetchCategories()
+    fetchBarangays()
   }, [])
 
   const fetchCategories = async () => {
@@ -53,6 +61,18 @@ export function ComplaintSubmissionForm() {
       }
     } catch (error) {
       console.error("Error fetching categories:", error)
+    }
+  }
+
+  const fetchBarangays = async () => {
+    try {
+      const response = await fetch("/api/barangays")
+      const result = await response.json()
+      if (result.success) {
+        setBarangays(result.data)
+      }
+    } catch (error) {
+      console.error("Error fetching barangays:", error)
     }
   }
 
@@ -86,6 +106,17 @@ export function ComplaintSubmissionForm() {
     }
   }
 
+  // Real-time classification as user types
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (formData.title && formData.description && formData.title.length > 5 && formData.description.length > 10) {
+        await classifyComplaint()
+      }
+    }, 2000) // Debounced after 2 seconds
+
+    return () => clearTimeout(timer)
+  }, [formData.title, formData.description])
+
   const classifyComplaint = async () => {
     if (!formData.title || !formData.description) return
 
@@ -105,7 +136,8 @@ export function ComplaintSubmissionForm() {
 
       const result = await response.json()
       if (result.success) {
-        setAiClassification(result.classification)
+        setClassification(result.data)
+        setClassificationSource(result.data.source)
       }
     } catch (error) {
       console.error("Error classifying complaint:", error)
@@ -127,11 +159,8 @@ export function ComplaintSubmissionForm() {
 
       const result = await response.json()
       if (result.success) {
-        if (result.data.classification) {
-          setAiClassification(result.data.classification)
-        }
         setIsSubmitted(true)
-        setCurrentStep(4)
+        setCurrentStep(5)
       }
     } catch (error) {
       console.error("Error submitting complaint:", error)
@@ -140,7 +169,7 @@ export function ComplaintSubmissionForm() {
     }
   }
 
-  const canProceedToStep2 = formData.title && formData.description && formData.category_id
+  const canProceedToStep2 = formData.title && formData.description && formData.category_id && formData.barangay_id
   const canProceedToStep3 = formData.location_address
 
   // Show loading state while checking authentication
@@ -155,29 +184,6 @@ export function ComplaintSubmissionForm() {
     )
   }
 
-  // Show login prompt if not authenticated
-  if (!user) {
-    return (
-      <Card className="max-w-2xl mx-auto border-2 border-primary">
-        <CardContent className="p-8 text-center">
-          <AlertCircle className="w-16 h-16 text-primary mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-primary mb-2">Authentication Required</h2>
-          <p className="text-muted-foreground mb-6">
-            You need to be logged in to submit a complaint. Please sign in or create an account to continue.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild variant="outline">
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">Create Account</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   if (isSubmitted) {
     return (
       <Card className="max-w-2xl mx-auto border-2 border-primary">
@@ -185,8 +191,9 @@ export function ComplaintSubmissionForm() {
           <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-primary mb-2">Complaint Submitted Successfully!</h2>
           <p className="text-muted-foreground mb-6">
-            Your complaint h received and will be reviewed by barangay officials. You will receive updates on the
-            status of your complaint.
+            Your complaint has been received and will be reviewed by barangay officials. 
+            {user ? 'You will receive updates on the status of your complaint.' : 
+             'If you provided contact information, you may receive updates on the status of your complaint.'}
           </p>
           <Button onClick={() => window.location.reload()} className="bg-accent hover:bg-accent/90">
             Submit Another Complaint
@@ -201,7 +208,7 @@ export function ComplaintSubmissionForm() {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div
                 className={cn(
@@ -213,12 +220,13 @@ export function ComplaintSubmissionForm() {
               >
                 {step}
               </div>
-              {step < 3 && <div className={cn("h-1 w-24 mx-4", currentStep > step ? "bg-primary" : "bg-border")} />}
+              {step < 4 && <div className={cn("h-1 w-20 mx-3", currentStep > step ? "bg-primary" : "bg-border")} />}
             </div>
           ))}
         </div>
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Complaint Details</span>
+          <span>Contact Info (Optional)</span>
           <span>Add Evidence</span>
           <span>Location & Submit</span>
         </div>
@@ -248,25 +256,45 @@ export function ComplaintSubmissionForm() {
               />
             </div>
 
+        <div className="row grid md:grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-primary font-semibold">
+              CATEGORY
+            </Label>
+            <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
+              <SelectTrigger className="border-2 border-primary">
+                <SelectValue placeholder="Select complaint category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }} />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-primary font-semibold">
-                CATEGORY
+              <Label htmlFor="barangay" className="text-primary font-semibold">
+                BARANGAY
               </Label>
-              <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
+              <Select value={formData.barangay_id} onValueChange={(value) => handleInputChange("barangay_id", value)}>
                 <SelectTrigger className="border-2 border-primary">
-                  <SelectValue placeholder="Select complaint category" />
+                  <SelectValue placeholder="Select your barangay" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }} />
-                        {category.name}
-                      </div>
+                  {barangays.map((barangay) => (
+                    <SelectItem key={barangay.id} value={barangay.id.toString()}>
+                      {barangay.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
             </div>
 
             <div className="space-y-2">
@@ -275,68 +303,67 @@ export function ComplaintSubmissionForm() {
               </Label>
               <Textarea
                 id="description"
-                placeholder="Provide detailed information about your complaint. Include when it happened, who w, and any other relevant details."
+                placeholder="Provide detailed information about your complaint. Include when it happened, who was involved, and any other relevant details."
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 className="min-h-32 border-2 border-primary"
               />
             </div>
 
+
             {formData.title && formData.description && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-blue-900">AI Analysis Preview</h4>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-green-900 text-sm">
+                      {classificationSource === 'ml' ? 'ML Analysis' : 
+                       classificationSource === 'ai' ? 'AI Analysis' : 
+                       classificationSource === 'hybrid' ? 'Hybrid Analysis' : 'Smart Analysis'}
+                    </h4>
+                    {isClassifying && (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-700"></div>
+                    )}
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={classifyComplaint}
                     disabled={isClassifying}
-                    className="border-blue-300 text-blue-700 bg-transparent"
+                    className="border-green-300 text-green-700 bg-transparent h-7 px-2 text-xs"
                   >
-                    {isClassifying ? "Analyzing..." : "Analyze Complaint"}
+                    {isClassifying ? "Analyzing..." : "Analyze"}
                   </Button>
                 </div>
 
-                {aiClassification && (
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Suggested Category:</span>
-                      <Badge variant="secondary">{aiClassification.category}</Badge>
-                      <Badge variant="outline">{aiClassification.subcategory}</Badge>
+                {classification && (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-green-800">Category:</span>
+                      <Badge variant="secondary" className="text-xs px-1 py-0">{classification.category}</Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Priority Level:</span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-green-800">Priority:</span>
                       <Badge
                         variant={
-                          aiClassification.priority === "urgent"
+                          classification.priority === "urgent"
                             ? "destructive"
-                            : aiClassification.priority === "high"
+                            : classification.priority === "high"
                               ? "default"
                               : "secondary"
                         }
+                        className="text-xs px-1 py-0"
                       >
-                        {aiClassification.priority.toUpperCase()}
+                        {classification.priority.toUpperCase()}
                       </Badge>
-                      <span className="text-muted-foreground">(Score: {aiClassification.urgency_score}/10)</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Suggested Department:</span>
-                      <span className="text-blue-700">{aiClassification.suggested_department}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-green-800">Department:</span>
+                      <span className="text-green-700 text-xs truncate">{classification.suggested_department}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Estimated Resolution:</span>
-                      <span className="text-blue-700">{aiClassification.estimated_resolution_days} days</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="font-medium">Keywords:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {aiClassification.keywords.map((keyword, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {keyword}
-                          </Badge>
-                        ))}
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-green-800">Confidence:</span>
+                      <span className="text-green-700 text-xs">{Math.round(classification.confidence * 100)}%</span>
                     </div>
                   </div>
                 )}
@@ -354,11 +381,96 @@ export function ComplaintSubmissionForm() {
         </Card>
       )}
 
-      {/* Step 2: Add Evidence */}
+      {/* Step 2: Contact Information (Optional) */}
       {currentStep === 2 && (
         <Card className="border-2 border-primary">
           <CardHeader>
-            <CardTitle className="text-primary">STEP 2: ADD EVIDENCE</CardTitle>
+            <CardTitle className="text-primary">STEP 2: CONTACT INFORMATION (OPTIONAL)</CardTitle>
+            <CardDescription>
+              Provide your contact details to receive updates about your complaint. You can skip this step to remain anonymous.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-800 text-sm">
+                <strong>🔒 Privacy Notice:</strong> Your contact information is optional and will only be used to provide updates about your complaint. You can skip this step to submit anonymously.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="anonymous_name" className="text-primary font-semibold">
+                  YOUR NAME (OPTIONAL)
+                </Label>
+                <Input
+                  id="anonymous_name"
+                  placeholder="Enter your full name"
+                  value={formData.anonymous_name}
+                  onChange={(e) => handleInputChange("anonymous_name", e.target.value)}
+                  className="border-2 border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anonymous_email" className="text-primary font-semibold">
+                  EMAIL ADDRESS (OPTIONAL)
+                </Label>
+                <Input
+                  id="anonymous_email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={formData.anonymous_email}
+                  onChange={(e) => handleInputChange("anonymous_email", e.target.value)}
+                  className="border-2 border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anonymous_phone" className="text-primary font-semibold">
+                  PHONE NUMBER (OPTIONAL)
+                </Label>
+                <Input
+                  id="anonymous_phone"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  value={formData.anonymous_phone}
+                  onChange={(e) => handleInputChange("anonymous_phone", e.target.value)}
+                  className="border-2 border-primary"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(1)}
+                className="flex-1 border-primary text-primary"
+              >
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(3)}
+                className="flex-1 border-primary text-primary"
+              >
+                Skip & Continue
+              </Button>
+              <Button
+                onClick={() => setCurrentStep(3)}
+                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                Continue
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Add Evidence */}
+      {currentStep === 3 && (
+        <Card className="border-2 border-primary">
+          <CardHeader>
+            <CardTitle className="text-primary">STEP 3: ADD EVIDENCE</CardTitle>
             <CardDescription>
               Upload photos or videos to support your complaint. Visual evidence helps officials understand and resolve
               issues faster.
@@ -417,7 +529,7 @@ export function ComplaintSubmissionForm() {
                 Back
               </Button>
               <Button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(4)}
                 className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 Continue to Location
@@ -427,11 +539,11 @@ export function ComplaintSubmissionForm() {
         </Card>
       )}
 
-      {/* Step 3: Location & Submit */}
-      {currentStep === 3 && (
+      {/* Step 4: Location & Submit */}
+      {currentStep === 4 && (
         <Card className="border-2 border-primary">
           <CardHeader>
-            <CardTitle className="text-primary">STEP 3: LOCATION & SUBMIT</CardTitle>
+            <CardTitle className="text-primary">STEP 4: LOCATION & SUBMIT</CardTitle>
             <CardDescription>
               Provide the location where the issue occurred. This helps officials respond more effectively.
             </CardDescription>
@@ -476,6 +588,9 @@ export function ComplaintSubmissionForm() {
                   <strong>Category:</strong> {categories.find((c) => c.id.toString() === formData.category_id)?.name}
                 </div>
                 <div>
+                  <strong>Barangay:</strong> {barangays.find((b) => b.id.toString() === formData.barangay_id)?.name}
+                </div>
+                <div>
                   <strong>Description:</strong> {formData.description.substring(0, 100)}...
                 </div>
                 <div>
@@ -484,26 +599,44 @@ export function ComplaintSubmissionForm() {
                 <div>
                   <strong>Location:</strong> {formData.location_address}
                 </div>
+                {!user && (formData.anonymous_name || formData.anonymous_email || formData.anonymous_phone) && (
+                  <div>
+                    <strong>Contact:</strong> {formData.anonymous_name || 'Anonymous'} 
+                    {formData.anonymous_email && ` (${formData.anonymous_email})`}
+                    {formData.anonymous_phone && ` - ${formData.anonymous_phone}`}
+                  </div>
+                )}
 
-                {aiClassification && (
+                {classification && (
                   <>
                     <div>
-                      <strong>AI Priority:</strong>
+                      <strong>Smart Priority:</strong>
                       <Badge
                         variant={
-                          aiClassification.priority === "urgent"
+                          classification.priority === "urgent"
                             ? "destructive"
-                            : aiClassification.priority === "high"
+                            : classification.priority === "high"
                               ? "default"
                               : "secondary"
                         }
                         className="ml-2"
                       >
-                        {aiClassification.priority.toUpperCase()}
+                        {classification.priority.toUpperCase()}
                       </Badge>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({Math.round(classification.confidence * 100)}% confidence)
+                      </span>
                     </div>
                     <div>
-                      <strong>Assigned Department:</strong> {aiClassification.suggested_department}
+                      <strong>Assigned Department:</strong> {classification.suggested_department}
+                    </div>
+                    <div>
+                      <strong>Analysis Method:</strong> 
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {classification.source === 'ml' ? 'Machine Learning' : 
+                         classification.source === 'ai' ? 'Generative AI' : 
+                         classification.source === 'hybrid' ? 'ML + AI' : 'Default'}
+                      </Badge>
                     </div>
                   </>
                 )}
@@ -513,7 +646,7 @@ export function ComplaintSubmissionForm() {
             <div className="flex gap-4">
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep(2)}
+                onClick={() => setCurrentStep(3)}
                 className="flex-1 border-primary text-primary"
               >
                 Back

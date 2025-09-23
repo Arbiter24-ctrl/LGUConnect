@@ -6,7 +6,7 @@ import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText } from "lucide-react"
+import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText, Brain, Zap, BarChart3 } from "lucide-react"
 
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState([])
@@ -144,6 +144,24 @@ export default function ComplaintsPage() {
                         <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
                           {complaint.category_name}
                         </Badge>
+                        {complaint.classification_source && (
+                          <Badge variant="outline" className="text-xs">
+                            {complaint.classification_source === 'ml' ? (
+                              <><Brain className="h-3 w-3 mr-1" />ML</>
+                            ) : complaint.classification_source === 'ai' ? (
+                              <><Zap className="h-3 w-3 mr-1" />AI</>
+                            ) : complaint.classification_source === 'hybrid' ? (
+                              <><BarChart3 className="h-3 w-3 mr-1" />Hybrid</>
+                            ) : (
+                              complaint.classification_source
+                            )}
+                          </Badge>
+                        )}
+                        {complaint.classification_confidence && (
+                          <Badge variant="outline" className="text-xs">
+                            {Math.round(complaint.classification_confidence * 100)}%
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">
                         {complaint.description.substring(0, 200)}

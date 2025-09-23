@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { ApiResponse, Complaint } from "@/lib/types"
-import { classifyComplaint } from "@/lib/ai-classifier"
+import { classifyComplaint } from "@/lib/hybrid-classifier"
 
 // GET /api/complaints - Fetch complaints with filters
 export async function GET(request) {
@@ -74,67 +74,89 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { user_id, category_id, title, description, location_lat, location_lng, location_address } = body
+    const { 
+      user_id, 
+      category_id, 
+      title, 
+      description, 
+      location_lat, 
+      location_lng, 
+      location_address,
+      barangay_id,
+      anonymous_name,
+      anonymous_email,
+      anonymous_phone
+    } = body
 
     // Validate required fields
-    if (!user_id || !category_id || !title || !description) {
+    if (!category_id || !title || !description || !barangay_id) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }
 
-    let aiClassification = null
+    // For anonymous submissions, set user_id to 0
+    const finalUserId = user_id || 0
+
+    let classification = null
     try {
-      aiClassification = await classifyComplaint(title, description, location_address)
-      console.log("[v0] AI Classification result:", aiClassification)
+      classification = await classifyComplaint(title, description, location_address)
+      console.log(`[Hybrid] Classification result (${classification.source}):`, classification)
     } catch (error) {
-      console.error("[v0] AI classification failed:", error)
-      // Continue without AI classification if it fails
+      console.error("[Hybrid] Classification failed:", error)
+      // Continue without classification if it fails
     }
 
     const sql = `
       INSERT INTO complaints (
         user_id, category_id, title, description, 
-        location_lat, location_lng, location_address,
+        location_lat, location_lng, location_address, barangay_id,
         priority, urgency_score, sentiment, keywords, 
-        suggested_department, estimated_resolution_days
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        suggested_department, estimated_resolution_days,
+        anonymous_name, anonymous_email, anonymous_phone
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
     const complaintId = await db.insert(sql, [
-      user_id,
+      finalUserId,
       category_id,
       title,
       description,
       location_lat || null,
       location_lng || null,
       location_address || null,
-      aiClassification?.priority || "medium",
-      aiClassification?.urgency_score || 5,
-      aiClassification?.sentiment || "neutral",
-      aiClassification?.keywords ? JSON.stringify(aiClassification.keywords) : null,
-      aiClassification?.suggested_department || "Administrative Office",
-      aiClassification?.estimated_resolution_days || 7,
+      barangay_id,
+      classification?.priority || "medium",
+      classification?.urgency_score || 5,
+      classification?.sentiment || "neutral",
+      classification?.keywords ? JSON.stringify(classification.keywords) : null,
+      classification?.suggested_department || "Administrative Office",
+      classification?.estimated_resolution_days || 7,
+      anonymous_name || null,
+      anonymous_email || null,
+      anonymous_phone || null,
     ])
 
-    if (aiClassification) {
+    if (classification) {
       await db.insert(
         `
         INSERT INTO ai_classifications (
           complaint_id, category, subcategory, priority, urgency_score,
           sentiment, keywords, suggested_department, estimated_resolution_days,
-          confidence_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          confidence_score, classification_source, processing_time_ms
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
         [
           complaintId,
-          aiClassification.category,
-          aiClassification.subcategory,
-          aiClassification.priority,
-          aiClassification.urgency_score,
-          aiClassification.sentiment,
-          JSON.stringify(aiClassification.keywords),
-          aiClassification.suggested_department,
-          aiClassification.estimated_resolution_days,
-          0.85, // Default confidence score
+          classification.category,
+          classification.subcategory,
+          classification.priority,
+          classification.urgency_score,
+          classification.sentiment,
+          JSON.stringify(classification.keywords),
+          classification.suggested_department,
+          classification.estimated_resolution_days,
+          classification.confidence || 0.85,
+          classification.source || 'unknown',
+          classification.processing_time || 0
         ],
       )
     }
@@ -143,7 +165,7 @@ export async function POST(request) {
     await db.insert("INSERT INTO complaint_status_history (complaint_id, new_status, changed_by) VALUES (?, ?, ?)", [
       complaintId,
       "submitted",
-      user_id,
+      finalUserId,
     ])
 
     const response = {
