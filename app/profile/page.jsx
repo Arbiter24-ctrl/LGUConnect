@@ -14,7 +14,6 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({
     name: "",
     email: "",
-    bio: "",
     role: "user",
   })
   const [editing, setEditing] = useState(false)
@@ -27,7 +26,6 @@ export default function ProfilePage() {
         setProfile({
           name: `${user.first_name} ${user.last_name}`,
           email: user.email,
-          bio: "", // Bio field not available in User type
           role: user.role,
         })
         setIsLoading(false)
@@ -91,9 +89,9 @@ export default function ProfilePage() {
           </Badge>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-5">
+        <div className="grid gap-6">
           {/* Profile Information */}
-          <div className="lg:col-span-4">
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
@@ -160,20 +158,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="bio">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      className="w-full min-h-[100px] border rounded-md px-3 py-2 text-sm resize-none"
-                      value={profile.bio}
-                      onChange={handleChange}
-                      disabled={!editing}
-                      placeholder="Tell us about yourself..."
-                    />
-                  </div>
 
                   <div className="flex gap-3 pt-4">
                     {editing ? (
@@ -196,50 +180,6 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Profile Stats & Actions */}
-          <div className="space-y-6">
-            {/* Profile Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Profile Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Member since</span>
-                  <span className="text-sm font-medium">Jan 2024</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Complaints submitted</span>
-                  <span className="text-sm font-medium">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Profile views</span>
-                  <span className="text-sm font-medium">45</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start" size="sm">
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  View Messages
-                </Button>
-                <Button variant="outline" className="w-full justify-start" size="sm">
-                  <FileText className="mr-2 h-4 w-4" />
-                  My Complaints
-                </Button>
-                <Button variant="outline" className="w-full justify-start" size="sm">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Activity
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>

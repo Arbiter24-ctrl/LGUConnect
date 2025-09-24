@@ -1,9 +1,9 @@
 'use client'
 
-import *  from 'react'
-import *  from '@radix-ui/react-slider'
+import * as React from 'react'
+import * as React from '@radix-ui/react-slider'
 
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 function Slider({
   className,
@@ -12,7 +12,7 @@ function Slider({
   min = 0,
   max = 100,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+}) {
   const _values = React.useMemo(
     () =>
       Array.isArray(value)
@@ -59,3 +59,4 @@ function Slider({
 }
 
 export { Slider }
+

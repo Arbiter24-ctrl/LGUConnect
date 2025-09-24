@@ -6,7 +6,8 @@ import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText } from "lucide-react"
+import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText, Brain, Zap, BarChart3, CheckCircle, PlayCircle } from "lucide-react"
+import ComplaintDetailsModal from "../../components/complaint-details-modal"
 
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState([])
@@ -14,6 +15,9 @@ export default function ComplaintsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
+  const [selectedComplaintId, setSelectedComplaintId] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState({})
 
   useEffect(() => {
     fetchComplaints()
@@ -44,6 +48,50 @@ export default function ComplaintsPage() {
 
     return matchesSearch && matchesStatus && matchesPriority
   })
+
+  const handleViewComplaint = (complaintId) => {
+    setSelectedComplaintId(complaintId)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedComplaintId(null)
+  }
+
+  const handleStatusUpdate = async (complaintId, newStatus) => {
+    setUpdatingStatus(prev => ({ ...prev, [complaintId]: true }))
+    try {
+      const response = await fetch(`/api/complaints/${complaintId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: newStatus
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        // Update local complaints state
+        setComplaints(prev => 
+          prev.map(complaint => 
+            complaint.id === complaintId 
+              ? { ...complaint, status: newStatus }
+              : complaint
+          )
+        )
+      } else {
+        console.error("Failed to update status:", result.error)
+      }
+    } catch (error) {
+      console.error("Error updating status:", error)
+    } finally {
+      setUpdatingStatus(prev => ({ ...prev, [complaintId]: false }))
+    }
+  }
 
   // Remove loading state - show page immediately
   // if (loading) {
@@ -144,6 +192,24 @@ export default function ComplaintsPage() {
                         <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
                           {complaint.category_name}
                         </Badge>
+                        {complaint.classification_source && (
+                          <Badge variant="outline" className="text-xs">
+                            {complaint.classification_source === 'ml' ? (
+                              <><Brain className="h-3 w-3 mr-1" />ML</>
+                            ) : complaint.classification_source === 'ai' ? (
+                              <><Zap className="h-3 w-3 mr-1" />AI</>
+                            ) : complaint.classification_source === 'hybrid' ? (
+                              <><BarChart3 className="h-3 w-3 mr-1" />Hybrid</>
+                            ) : (
+                              complaint.classification_source
+                            )}
+                          </Badge>
+                        )}
+                        {complaint.classification_confidence && (
+                          <Badge variant="outline" className="text-xs">
+                            {Math.round(complaint.classification_confidence * 100)}%
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">
                         {complaint.description.substring(0, 200)}
@@ -173,10 +239,63 @@ export default function ComplaintsPage() {
                       >
                         {complaint.status.replace("_", " ").toUpperCase()}
                       </Badge>
-                      <Button variant="ghost" size="sm">
+                      
+                      {/* Status Management Buttons */}
+                      {complaint.status !== 'resolved' && (
+                        <div className="flex gap-1">
+                          {complaint.status === 'submitted' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleStatusUpdate(complaint.id, 'in_progress')}
+                              disabled={updatingStatus[complaint.id]}
+                              title="Mark as In Progress"
+                              className="h-8 px-2"
+                            >
+                              <PlayCircle className="w-3 h-3" />
+                            </Button>
+                          )}
+                          {complaint.status === 'in_progress' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleStatusUpdate(complaint.id, 'resolved')}
+                              disabled={updatingStatus[complaint.id]}
+                              title="Mark as Resolved"
+                              className="h-8 px-2"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                            </Button>
+                          )}
+                          {complaint.status === 'submitted' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleStatusUpdate(complaint.id, 'resolved')}
+                              disabled={updatingStatus[complaint.id]}
+                              title="Mark as Resolved"
+                              className="h-8 px-2"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewComplaint(complaint.id)}
+                        title="View Details"
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewComplaint(complaint.id)}
+                        title="View Comments"
+                      >
                         <MessageSquare className="w-4 h-4" />
                       </Button>
                     </div>
@@ -186,6 +305,13 @@ export default function ComplaintsPage() {
             ))
           )}
         </div>
+
+        {/* Complaint Details Modal */}
+        <ComplaintDetailsModal
+          complaintId={selectedComplaintId}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
     </div>
   )
 }

@@ -109,8 +109,8 @@ export default function TrendsPage() {
 
     // Count current period
     filteredComplaints.forEach(complaint => {
-      const category = complaint.category?.name || 'Uncategorized'
-      const color = complaint.category?.color || '#6b7280'
+      const category = complaint.category_name || 'Uncategorized'
+      const color = complaint.category_color || '#6b7280'
       
       if (!categoryMap.has(category)) {
         categoryMap.set(category, { count: 0, previousCount: 0, color })
@@ -120,7 +120,7 @@ export default function TrendsPage() {
 
     // Count previous period
     previousComplaints.forEach(complaint => {
-      const category = complaint.category?.name || 'Uncategorized'
+      const category = complaint.category_name || 'Uncategorized'
       if (categoryMap.has(category)) {
         categoryMap.get(category).previousCount++
       }
@@ -185,7 +185,7 @@ export default function TrendsPage() {
       // Get most common category for the day
       const categoryCount = new Map()
       dayComplaints.forEach(complaint => {
-        const category = complaint.category?.name || 'Uncategorized'
+        const category = complaint.category_name || 'Uncategorized'
         categoryCount.set(category, (categoryCount.get(category) || 0) + 1)
       })
       

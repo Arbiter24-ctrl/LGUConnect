@@ -1,15 +1,15 @@
 'use client'
 
-import *  from 'react'
+import * as React from 'react'
 import { GripVerticalIcon } from 'lucide-react'
-import *  from 'react-resizable-panels'
+import * as React from 'react-resizable-panels'
 
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 function ResizablePanelGroup({
   className,
   ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) {
+}) {
   return (
     <ResizablePrimitive.PanelGroup
       data-slot="resizable-panel-group"
@@ -24,7 +24,7 @@ function ResizablePanelGroup({
 
 function ResizablePanel({
   ...props
-}: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
+}) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />
 }
 
@@ -32,7 +32,7 @@ function ResizableHandle({
   withHandle,
   className,
   ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelResizeHandle> & {
+} & {
   withHandle?) {
   return (
     <ResizablePrimitive.PanelResizeHandle
@@ -53,3 +53,4 @@ function ResizableHandle({
 }
 
 export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+

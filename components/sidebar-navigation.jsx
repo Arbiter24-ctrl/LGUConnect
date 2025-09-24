@@ -97,19 +97,19 @@ export function SidebarNavigation({ className }) {
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 z-50 h-full w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out",
+        "fixed left-0 top-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
         className
       )}>
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="p-6 border-b border-border flex-shrink-0">
+          <div className="p-6 border-b border-sidebar-border flex-shrink-0">
             <Link href="/dashboard" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
-              <Shield className="h-8 w-8 text-primary" />
+              <Shield className="h-8 w-8 text-sidebar-primary" />
               <div>
-                <h1 className="text-lg font-bold text-primary">Admin Panel</h1>
-                <p className="text-xs text-muted-foreground">Complaint Management</p>
+                <h1 className="text-lg font-bold text-sidebar-primary">Admin Panel</h1>
+                <p className="text-xs text-sidebar-foreground/70">Complaint Management</p>
               </div>
             </Link>
           </div>
@@ -130,8 +130,8 @@ export function SidebarNavigation({ className }) {
                   className={cn(
                     "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -143,7 +143,7 @@ export function SidebarNavigation({ className }) {
 
           {/* User section */}
           {user ? (
-            <div className="p-4 border-t border-border flex-shrink-0">
+            <div className="p-4 border-t border-sidebar-border flex-shrink-0">
               {/* User info */}
               <div className="flex items-center space-x-3 mb-4">
                 <Avatar className="h-8 w-8">
@@ -152,13 +152,13 @@ export function SidebarNavigation({ className }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-sm font-medium truncate text-sidebar-foreground">
                     {user.first_name} {user.last_name}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-sidebar-foreground/70 truncate">
                     {user.email}
                   </p>
-                  <p className="text-xs text-muted-foreground capitalize">
+                  <p className="text-xs text-sidebar-foreground/70 capitalize">
                     {user.role}
                   </p>
                 </div>
@@ -178,8 +178,8 @@ export function SidebarNavigation({ className }) {
                       className={cn(
                         "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
                         isActive 
-                          ? "bg-primary text-primary-foreground" 
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -200,7 +200,7 @@ export function SidebarNavigation({ className }) {
               </Button>
             </div>
           ) : (
-            <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
+            <div className="p-4 border-t border-sidebar-border space-y-2 flex-shrink-0">
               <Button asChild variant="outline" size="sm" className="w-full">
                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                   Sign In

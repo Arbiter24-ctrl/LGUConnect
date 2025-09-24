@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import {
   XAxis,
   YAxis,
@@ -30,6 +31,9 @@ import {
   TrendingUp,
   FileText,
   CheckCircle,
+  Brain,
+  Zap,
+  BarChart3,
 } from "lucide-react"
 
 export default function OfficialsDashboard() {
@@ -37,6 +41,7 @@ export default function OfficialsDashboard() {
   const router = useRouter()
   const [complaints, setComplaints] = useState([])
   const [stats, setStats] = useState(null)
+  const [mlStats, setMlStats] = useState(null)
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -92,6 +97,22 @@ export default function OfficialsDashboard() {
           urgent_complaints: urgent,
           avg_resolution_time: 5.2,
           satisfaction_rate: 85
+        })
+
+        // Calculate ML stats from complaints data
+        const mlPredictions = complaintsResult.data.filter((c) => c.classification_source === 'ml').length
+        const aiPredictions = complaintsResult.data.filter((c) => c.classification_source === 'ai').length
+        const hybridPredictions = complaintsResult.data.filter((c) => c.classification_source === 'hybrid').length
+        
+        setMlStats({
+          mlAccuracy: 87.5,
+          aiAccuracy: 92.3,
+          hybridAccuracy: 94.1,
+          totalPredictions: mlPredictions + aiPredictions + hybridPredictions,
+          mlPredictions,
+          aiPredictions,
+          hybridPredictions,
+          avgProcessingTime: 245
         })
       }
     } catch (error) {
@@ -239,6 +260,130 @@ export default function OfficialsDashboard() {
           </Card>
         </div>
 
+        {/* ML Performance Section */}
+        {/* {mlStats && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Brain className="h-6 w-6 text-primary" />
+              AI Classification Performance
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">ML Accuracy</p>
+                      <p className="text-3xl font-bold text-foreground">{mlStats.mlAccuracy}%</p>
+                    </div>
+                    <Brain className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <div className="flex items-center mt-4 text-sm">
+                    <span className="text-blue-500">Machine Learning</span>
+                    <span className="text-muted-foreground ml-1">predictions</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">AI Accuracy</p>
+                      <p className="text-3xl font-bold text-foreground">{mlStats.aiAccuracy}%</p>
+                    </div>
+                    <Zap className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <div className="flex items-center mt-4 text-sm">
+                    <span className="text-purple-500">Generative AI</span>
+                    <span className="text-muted-foreground ml-1">predictions</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Hybrid Accuracy</p>
+                      <p className="text-3xl font-bold text-foreground">{mlStats.hybridAccuracy}%</p>
+                    </div>
+                    <BarChart3 className="w-8 h-8 text-green-500" />
+                  </div>
+                  <div className="flex items-center mt-4 text-sm">
+                    <span className="text-green-500">Combined approach</span>
+                    <span className="text-muted-foreground ml-1">best performance</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Avg Processing</p>
+                      <p className="text-3xl font-bold text-foreground">{mlStats.avgProcessingTime}ms</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <div className="flex items-center mt-4 text-sm">
+                    <span className="text-orange-500">Response time</span>
+                    <span className="text-muted-foreground ml-1">per prediction</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground">Classification Method Distribution</CardTitle>
+                <CardDescription>How predictions are distributed across ML, AI, and hybrid approaches</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="font-medium">Machine Learning</p>
+                        <p className="text-sm text-muted-foreground">{mlStats.mlPredictions} predictions</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{mlStats.mlPredictions > 0 ? Math.round((mlStats.mlPredictions / mlStats.totalPredictions) * 100) : 0}%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Zap className="h-5 w-5 text-purple-500" />
+                      <div>
+                        <p className="font-medium">Generative AI</p>
+                        <p className="text-sm text-muted-foreground">{mlStats.aiPredictions} predictions</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{mlStats.aiPredictions > 0 ? Math.round((mlStats.aiPredictions / mlStats.totalPredictions) * 100) : 0}%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">Hybrid</p>
+                        <p className="text-sm text-muted-foreground">{mlStats.hybridPredictions} predictions</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{mlStats.hybridPredictions > 0 ? Math.round((mlStats.hybridPredictions / mlStats.totalPredictions) * 100) : 0}%</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )} */}
+
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="bg-card border-border">
@@ -359,64 +504,94 @@ export default function OfficialsDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {filteredComplaints.slice(0, 10).map((complaint) => (
-                <div
-                  key={complaint.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{complaint.title}</h3>
-                      <Badge
-                        variant={
-                          complaint.priority === "urgent"
-                            ? "destructive"
-                            : complaint.priority === "high"
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Complaint</TableHead>
+                    <TableHead>Complainant</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredComplaints.slice(0, 10).map((complaint) => (
+                    <TableRow key={complaint.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-foreground">{complaint.title}</div>
+                          <div className="text-sm text-muted-foreground max-w-xs truncate">
+                            {complaint.description.substring(0, 80)}...
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {complaint.first_name} {complaint.last_name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
+                          {complaint.category_name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            complaint.priority === "urgent"
+                              ? "destructive"
+                              : complaint.priority === "high"
+                                ? "default"
+                                : "secondary"
+                          }
+                        >
+                          {complaint.priority.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            complaint.status === "resolved"
                               ? "default"
-                              : "secondary"
-                        }
-                      >
-                        {complaint.priority.toUpperCase()}
-                      </Badge>
-                      <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
-                        {complaint.category_name}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{complaint.description.substring(0, 120)}...</p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>
-                        By: {complaint.first_name} {complaint.last_name}
-                      </span>
-                      <span>•</span>
-                      <span>{new Date(complaint.created_at).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>Dept: {complaint.suggested_department}</span>
-                      <span>•</span>
-                      <span>Est. {complaint.estimated_resolution_days} days</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        complaint.status === "resolved"
-                          ? "default"
-                          : complaint.status === "in_progress"
-                            ? "secondary"
-                            : "outline"
-                      }
-                    >
-                      {complaint.status.replace("_", " ").toUpperCase()}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                              : complaint.status === "in_progress"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {complaint.status.replace("_", " ").toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(complaint.created_at).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {complaint.suggested_department}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Est. {complaint.estimated_resolution_days} days
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" title="View Details">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="View Comments">
+                            <MessageSquare className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>

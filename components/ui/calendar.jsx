@@ -1,6 +1,6 @@
 'use client'
 
-import *  from 'react'
+import * as React from 'react'
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker'
 
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 import { Button, buttonVariants } from '../components/ui/button'
 
 function Calendar({
@@ -20,8 +20,8 @@ function Calendar({
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>['variant']
+} & {
+  buttonVariant?['variant']
 }) {
   const defaultClassNames = getDefaultClassNames()
 
@@ -177,7 +177,7 @@ function CalendarDayButton({
   day,
   modifiers,
   ...props
-}: React.ComponentProps<typeof DayButton>) {
+}) {
   const defaultClassNames = getDefaultClassNames()
 
   const ref = React.useRef<HTMLButtonElement>(null)
@@ -211,3 +211,4 @@ function CalendarDayButton({
 }
 
 export { Calendar, CalendarDayButton }
+
