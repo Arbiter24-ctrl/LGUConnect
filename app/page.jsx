@@ -26,8 +26,8 @@ export default function HomePage() {
             <div className="flex items-center space-x-2">
               <Shield className="h-6 w-6 text-primary" />
               <div>
-                <h1 className="text-xl font-bold text-primary">Tagum City</h1>
-                <p className="text-xs text-muted-foreground">Complaint Management System</p>
+                <h1 className="text-xl font-bold text-primary">Tagum City <span className="text-xs text-muted-foreground">Complaint Management System</span></h1>
+             
               </div>
             </div>
             <div className="flex space-x-3">

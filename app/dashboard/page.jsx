@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import {
   XAxis,
   YAxis,
@@ -260,7 +261,7 @@ export default function OfficialsDashboard() {
         </div>
 
         {/* ML Performance Section */}
-        {mlStats && (
+        {/* {mlStats && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <Brain className="h-6 w-6 text-primary" />
@@ -381,7 +382,7 @@ export default function OfficialsDashboard() {
               </CardContent>
             </Card>
           </div>
-        )}
+        )} */}
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -503,64 +504,94 @@ export default function OfficialsDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {filteredComplaints.slice(0, 10).map((complaint) => (
-                <div
-                  key={complaint.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-secondary/20"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{complaint.title}</h3>
-                      <Badge
-                        variant={
-                          complaint.priority === "urgent"
-                            ? "destructive"
-                            : complaint.priority === "high"
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Complaint</TableHead>
+                    <TableHead>Complainant</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredComplaints.slice(0, 10).map((complaint) => (
+                    <TableRow key={complaint.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-foreground">{complaint.title}</div>
+                          <div className="text-sm text-muted-foreground max-w-xs truncate">
+                            {complaint.description.substring(0, 80)}...
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {complaint.first_name} {complaint.last_name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
+                          {complaint.category_name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            complaint.priority === "urgent"
+                              ? "destructive"
+                              : complaint.priority === "high"
+                                ? "default"
+                                : "secondary"
+                          }
+                        >
+                          {complaint.priority.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            complaint.status === "resolved"
                               ? "default"
-                              : "secondary"
-                        }
-                      >
-                        {complaint.priority.toUpperCase()}
-                      </Badge>
-                      <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
-                        {complaint.category_name}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{complaint.description.substring(0, 120)}...</p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>
-                        By: {complaint.first_name} {complaint.last_name}
-                      </span>
-                      <span>•</span>
-                      <span>{new Date(complaint.created_at).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>Dept: {complaint.suggested_department}</span>
-                      <span>•</span>
-                      <span>Est. {complaint.estimated_resolution_days} days</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        complaint.status === "resolved"
-                          ? "default"
-                          : complaint.status === "in_progress"
-                            ? "secondary"
-                            : "outline"
-                      }
-                    >
-                      {complaint.status.replace("_", " ").toUpperCase()}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                              : complaint.status === "in_progress"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {complaint.status.replace("_", " ").toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(complaint.created_at).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {complaint.suggested_department}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Est. {complaint.estimated_resolution_days} days
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" title="View Details">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="View Comments">
+                            <MessageSquare className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
