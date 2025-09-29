@@ -70,32 +70,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen from-green-50 to-green-100 flex items-center justify-center p-4"
-    style={{
-      backgroundImage: "url('/cityhall.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundAttachment: "fixed"
-    }}
-    >
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-            <div className="flex-1"></div>
+    <div className="min-h-screen flex">
+      {/* Left Side - Background Image */}
+      <div 
+        className="hidden lg:flex lg:w-2/3 relative"
+        style={{
+          backgroundImage: "url('/city.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Welcome Text */}
+        <div className="relative z-10 flex flex-col justify-center items-center text-white p-12 h-full w-full">
+          <div className="text-center w-full">
+            <h1 className="text-6xl font-bold mb-4">Welcome</h1>
+            <h2 className="text-4xl font-semibold mb-8">to</h2>
+            <h3 className="text-5xl font-bold">Complaint Management</h3>
+            <p className="text-xl mt-8 text-white/90 max-w-md mx-auto">
+              Efficiently manage and track community complaints with our modern system
+            </p>
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Welcome Back</CardTitle>
-          <CardDescription>
-            Sign in to your account to access the complaint management system
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/3 flex items-center justify-center p-8 bg-white">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Link href="/">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h1>
+            <p className="text-gray-600">Access the complaint management system</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -103,7 +122,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -112,11 +131,12 @@ export default function LoginPage() {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 disabled={isLoading}
+                className="h-12"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -126,12 +146,13 @@ export default function LoginPage() {
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   required
                   disabled={isLoading}
+                  className="h-12 pr-12"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-12 px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
@@ -146,7 +167,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full h-12 text-lg"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -155,21 +176,25 @@ export default function LoginPage() {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                'SIGN IN'
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
+          {/* Footer Links */}
+          <div className="mt-8 text-center space-y-4">
+            <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link href="/register" className="text-primary hover:underline">
+              <Link href="/register" className="text-blue-600 hover:underline font-medium">
                 Sign up
               </Link>
             </p>
+            <p className="text-xs text-gray-500">
+              © 2025 Complaint Management System. All rights reserved.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

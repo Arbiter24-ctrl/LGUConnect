@@ -11,7 +11,8 @@ export default function HomePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{
-        backgroundImage: "url('/cityhall.jpg')",
+      
+        backgroundImage: "url('/city.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed"
@@ -24,9 +25,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <Shield className="h-6 w-6 text-primary" />
+            
               <div>
-                <h1 className="text-xl font-bold text-primary">Tagum City <span className="text-xs text-muted-foreground">Complaint Management System</span></h1>
+                <h1 className="text-xl font-bold text-primary">LGUConnect <span className="text-xs text-muted-foreground">Complaint Management System</span></h1>
              
               </div>
             </div>
