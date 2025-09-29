@@ -27,7 +27,6 @@ return new class extends Migration
             'username' => 'admin@gmail.com',
             'email' => 'admin',
             'password' => Hash::make('admin123'),
-            'name' => 'Super Administrator',
             'role' => 'super_admin',
             'created_at' => now(),
             'updated_at' => now()
