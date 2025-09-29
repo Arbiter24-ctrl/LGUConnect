@@ -3,56 +3,53 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Phpml\Classification\KNearestNeighbors;
+use Phpml\FeatureExtraction\TokenCountVectorizer;
+use Phpml\Tokenization\WordTokenizer;
 
 class ComplaintController extends Controller
 {
     public function analyze()
     {
-        // 1. Fetch complaints from DB
-        $complaints = Complaint::all(['title', 'description', 'category']);
+        // Get complaints from DB
+        $complaints = DB::table('complaints')->get();
 
-        if ($complaints->isEmpty()) {
-            return response()->json(['message' => 'No complaints available.']);
-        }
-
-        // 2. Prepare training data
+        // Prepare samples (descriptions) and labels (categories)
         $samples = [];
-        $labels  = [];
+        $labels = [];
 
-        foreach ($complaints as $c) {
-            $samples[] = $c->title . ' ' . $c->description; // combine text
-            $labels[]  = $c->category; // target label
+        foreach ($complaints as $complaint) {
+            $samples[] = $complaint->description;
+            $labels[] = $complaint->category;
         }
 
-        // 3. Vectorize text (Bag of Words)
-        $vectorizer = new TokenCountVectorizer(new WhitespaceTokenizer());
+        // Vectorize text data
+        $vectorizer = new TokenCountVectorizer(new WordTokenizer());
         $vectorizer->fit($samples);
         $vectorizer->transform($samples);
 
-        // 4. Train Logistic Regression
-        $classifier = new LogisticRegression();
+        // Train classifier (KNN, k=3 for small dataset)
+        $classifier = new KNearestNeighbors(3);
         $classifier->train($samples, $labels);
 
-        // 5. Predict categories & count stats
-        $stats = [];
-        foreach ($complaints as $c) {
-            $sample = [$c->title . ' ' . $c->description];
+        // Predict priorities for each complaint
+        $results = [];
+        foreach ($complaints as $complaint) {
+            $sample = [$complaint->description];
             $vectorizer->transform($sample);
-            $prediction = $classifier->predict($sample);
 
-            if (!isset($stats[$prediction])) {
-                $stats[$prediction] = 0;
-            }
-            $stats[$prediction]++;
+            $predictedCategory = $classifier->predict($sample);
+
+            $results[] = [
+                'id' => $complaint->id,
+                'title' => $complaint->title,
+                'description' => $complaint->description,
+                'actual_category' => $complaint->category,
+                'predicted_category' => $predictedCategory,
+            ];
         }
 
-        // 6. Prioritization = sort categories by frequency
-        arsort($stats);
-
-        // 7. Prepare response
-        return response()->json([
-            'category_statistics' => $stats,
-            'priority_order' => array_keys($stats),
-        ]);
+        return response()->json($results);
     }
 }

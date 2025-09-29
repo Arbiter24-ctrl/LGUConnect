@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ComplaintController;
+use App\Models\Barangay;
 
 
 Route::prefix('barangay')->group(function () {
@@ -19,5 +20,5 @@ Route::prefix('barangay')->group(function () {
 
 
     // Public routes
-    Route::post('/analyze', [ComplaintController::class, 'analyze']);
+    Route::get('/analyze', [ComplaintController::class, 'analyze']);
 });
