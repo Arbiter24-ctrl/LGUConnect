@@ -1,0 +1,9 @@
+# ### Get all barangays
+# GET http://localhost:8000/api/barangay/barangays
+# Accept: application/json
+
+
+GET http://localhost:8000/api/barangay/analyze
+Authorization: Bearer 
+Accept: application/json
+Content-Type: application/json

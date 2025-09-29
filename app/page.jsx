@@ -11,7 +11,8 @@ export default function HomePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{
-        backgroundImage: "url('/cityhall.jpg')",
+      
+        backgroundImage: "url('/city.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed"

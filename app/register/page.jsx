@@ -129,7 +129,7 @@ export default function RegisterPage() {
       <div 
         className="hidden lg:flex lg:w-2/3 relative"
         style={{
-          backgroundImage: "url('/cityhall.jpg')",
+          backgroundImage: "url('/city.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
