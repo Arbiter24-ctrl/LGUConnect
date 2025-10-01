@@ -78,12 +78,8 @@ export default function ProfilePage() {
   return (
     <div className="w-full px-6 py-6">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Profile</h1>
-            <p className="text-muted-foreground">Manage your account information and preferences</p>
-          </div>
+        {/* Role Badge */}
+        <div className="flex items-center justify-end">
           <Badge variant="outline" className="text-sm capitalize">
             {profile.role}
           </Badge>

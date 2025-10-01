@@ -245,14 +245,8 @@ export default function TrendsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Complaint Trends</h1>
-          <p className="text-muted-foreground">
-            Analyze complaint patterns and identify trending issues
-          </p>
-        </div>
+      {/* Time Range Selector */}
+      <div className="flex items-center justify-end">
         
         <div className="flex items-center space-x-2">
           <Button

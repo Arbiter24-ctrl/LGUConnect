@@ -1,6 +1,7 @@
 "use client"
 
 import { SidebarNavigation } from './sidebar-navigation'
+import { Header } from './header'
 import { useUser } from '../lib/user-context'
 import { usePathname } from 'next/navigation'
 
@@ -56,7 +57,8 @@ export function MainLayout({ children }) {
   return (
     <div className="min-h-screen bg-background">
       {shouldShowSidebar && <SidebarNavigation />}
-      <main className={shouldShowSidebar ? "lg:ml-64" : ""}>
+      {shouldShowSidebar && <Header />}
+      <main className={shouldShowSidebar ? "lg:ml-64 pt-16" : ""}>
         <div className="min-h-screen">
           {children}
         </div>

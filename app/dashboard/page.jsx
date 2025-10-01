@@ -23,7 +23,6 @@ import {
 } from "recharts"
 import {
   Search,
-  Download,
   Eye,
   MessageSquare,
   Clock,
@@ -130,30 +129,99 @@ export default function OfficialsDashboard() {
     return matchesSearch && matchesStatus && matchesPriority
   })
 
-  // Chart data
-  const complaintsOverTime = [
-    { month: "Jan", complaints: 12, resolved: 8 },
-    { month: "Feb", complaints: 15, resolved: 10 },
-    { month: "Mar", complaints: 18, resolved: 12 },
-    { month: "Apr", complaints: 14, resolved: 9 },
-    { month: "May", complaints: 16, resolved: 11 },
-    { month: "Jun", complaints: 13, resolved: 9 }
-  ]
+  // Process complaints data for charts
+  const processComplaintsOverTime = () => {
+    const last6Months = []
+    const currentDate = new Date()
+    
+    // Generate last 6 months with proper date handling
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' })
+      last6Months.push({
+        month: monthName,
+        monthKey: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+        complaints: 0,
+        resolved: 0
+      })
+    }
 
-  const categoryData = [
-    { name: "Infrastructure", value: 25, color: "#3b82f6" },
-    { name: "Public Safety", value: 20, color: "#ef4444" },
-    { name: "Health & Sanitation", value: 18, color: "#10b981" },
-    { name: "Environmental", value: 15, color: "#f59e0b" },
-    { name: "Administrative", value: 12, color: "#8b5cf6" }
-  ]
+    // Count complaints by month
+    complaints.forEach(complaint => {
+      const complaintDate = new Date(complaint.created_at)
+      const complaintMonthKey = `${complaintDate.getFullYear()}-${String(complaintDate.getMonth() + 1).padStart(2, '0')}`
+      
+      const monthData = last6Months.find(m => m.monthKey === complaintMonthKey)
+      if (monthData) {
+        monthData.complaints++
+        if (complaint.status === 'resolved') {
+          monthData.resolved++
+        }
+      }
+    })
 
-  const priorityData = [
-    { priority: "Low", count: 15, color: "#10b981" },
-    { priority: "Medium", count: 25, color: "#f59e0b" },
-    { priority: "High", count: 10, color: "#ef4444" },
-    { priority: "Urgent", count: 5, color: "#dc2626" }
-  ]
+    // Remove monthKey before returning
+    return last6Months.map(({ monthKey, ...rest }) => rest)
+  }
+
+  const processCategoryData = () => {
+    const categoryCounts = {}
+    const categoryColors = {
+      "Infrastructure": "#3b82f6",
+      "Public Safety": "#ef4444", 
+      "Health & Sanitation": "#10b981",
+      "Environmental": "#f59e0b",
+      "Administrative": "#8b5cf6",
+      "Other": "#6b7280"
+    }
+
+    // Count complaints by category
+    complaints.forEach(complaint => {
+      const category = complaint.category_name || 'Other'
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1
+    })
+
+    // Convert to chart format with fallback colors
+    const defaultColors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#6b7280", "#f97316", "#84cc16"]
+    
+    return Object.entries(categoryCounts).map(([name, value], index) => ({
+      name,
+      value,
+      color: categoryColors[name] || defaultColors[index % defaultColors.length]
+    }))
+  }
+
+  // Chart data - now using real complaint data
+  const complaintsOverTime = processComplaintsOverTime()
+  const categoryData = processCategoryData()
+  
+  // Debug logging
+  console.log('Category data for pie chart:', categoryData)
+
+  const processPriorityData = () => {
+    const priorityCounts = {}
+    const priorityColors = {
+      "low": "#10b981",
+      "medium": "#f59e0b", 
+      "high": "#ef4444",
+      "urgent": "#dc2626"
+    }
+
+    // Count complaints by priority
+    complaints.forEach(complaint => {
+      const priority = complaint.priority || 'low'
+      priorityCounts[priority] = (priorityCounts[priority] || 0) + 1
+    })
+
+    // Convert to chart format
+    return Object.entries(priorityCounts).map(([priority, count]) => ({
+      priority: priority.charAt(0).toUpperCase() + priority.slice(1),
+      count,
+      color: priorityColors[priority] || "#6b7280"
+    }))
+  }
+
+  const priorityData = processPriorityData()
 
   // Remove loading state - show dashboard immediately
   // if (userLoading || loading) {
@@ -173,23 +241,11 @@ export default function OfficialsDashboard() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-      {/* Header */}
-
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Barangay Officials Dashboard</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Complaint Management & Analytics</p>
-      </div>
+      {/* Page Actions */}
       <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <Button variant="outline" size="sm" className="w-full sm:w-auto">
-              <Download className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
-            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-              Last updated: {new Date().toLocaleString()}
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+            Last updated: {new Date().toLocaleString()}
           </div>
         </div>
       </div>
@@ -442,7 +498,6 @@ export default function OfficialsDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  fill="#8884d8"
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >

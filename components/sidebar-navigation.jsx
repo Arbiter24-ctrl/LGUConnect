@@ -2,18 +2,15 @@
 
 import { useUser } from '../lib/user-context'
 import { Button } from '../components/ui/button'
-import { Avatar, AvatarFallback } from '../components/ui/avatar'
 import { 
-  LogOut, 
-  User, 
-  Settings, 
   Shield, 
   FileText, 
   BarChart3,
   Menu,
   X,
   Home,
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -21,57 +18,57 @@ import { useState } from 'react'
 import { cn } from '../lib/utils'
 
 export function SidebarNavigation({ className }) {
-  const { user, logout } = useUser()
+  const { user } = useUser()
   const router = useRouter()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const handleLogout = async () => {
-    // Immediately redirect to prevent any delay
-    window.location.href = '/login'
-    
-    // Clear state in background
-    try {
-      await logout()
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-  }
-
-  const navigationItems = [
+  const navigationCategories = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: Home,
-      show: true,
+      title: 'Main',
+      items: [
+        {
+          name: 'Dashboard',
+          href: '/dashboard',
+          icon: Home,
+          show: true,
+        },
+        {
+          name: 'Manage Complaints',
+          href: '/complaints',
+          icon: MessageSquare,
+          show: true,
+        },
+        {
+          name: 'Trends & Analytics',
+          href: '/trend',
+          icon: BarChart3,
+          show: true,
+        },
+      ]
     },
     {
-      name: 'Manage Complaints',
-      href: '/complaints',
-      icon: MessageSquare,
-      show: true,
-    },
-    {
-      name: 'Trends',
-      href: '/trend',
-      icon: BarChart3,
-      show: true,
-    },
- 
-  ]
-
-  const userMenuItems = [
-    {
-      name: 'Profile',
-      href: '/profile',
-      icon: User,
-    },
-    {
-      name: 'Settings',
-      href: '/settings',
-      icon: Settings,
+      title: 'Management',
+      items: [
+        {
+          name: 'User Management',
+          href: '/users',
+          icon: Users,
+          show: user?.role === 'admin',
+        },
+        {
+          name: 'Reports',
+          href: '/reports',
+          icon: FileText,
+          show: true,
+        },
+      ]
     }
   ]
+
+  // Quick actions removed
+
+  // User menu items removed - now available in header dropdown
 
   return (
     <>
@@ -117,92 +114,65 @@ export function SidebarNavigation({ className }) {
             </Link>
           </div>
 
+          {/* Quick Stats */}
+          {user && (
+            <div className="px-4 py-3 border-b border-sidebar-border">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-white">12</div>
+                  <div className="text-xs text-white/70">Today's</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-white">8</div>
+                  <div className="text-xs text-white/70">Pending</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {navigationItems.map((item) => {
-              if (!item.show) return null
-              
-              const Icon = item.icon
-              const isActive = pathname === item.href
+          <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+            {navigationCategories.map((category) => {
+              const visibleItems = category.items.filter(item => item.show)
+              if (visibleItems.length === 0) return null
               
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    isActive 
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground" 
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
+                <div key={category.title} className="space-y-2">
+                  <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider px-3">
+                    {category.title}
+                  </h3>
+                  <div className="space-y-1">
+                    {visibleItems.map((item) => {
+                      const Icon = item.icon
+                      const isActive = pathname === item.href
+                      
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={cn(
+                            "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                            isActive 
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{item.name}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
               )
             })}
           </nav>
 
-          {/* User section */}
-          {user ? (
-            <div className="p-4 border-t border-sidebar-border flex-shrink-0">
-              {/* User info */}
-              <div className="flex items-center space-x-3 mb-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-sidebar-foreground">
-                    {user.first_name} {user.last_name}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/70 truncate">
-                    {user.email}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/70 capitalize">
-                    {user.role}
-                  </p>
-                </div>
-              </div>
+          {/* Quick Actions removed */}
 
-              {/* User menu items */}
-              <div className="space-y-1 mb-4">
-                {userMenuItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                        isActive 
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground" 
-                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-
-              {/* Logout button */}
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4 mr-3" />
-                Log out
-              </Button>
-            </div>
-          ) : (
+          {/* User section removed - now available in header dropdown */}
+          {!user && (
             <div className="p-4 border-t border-sidebar-border space-y-2 flex-shrink-0">
               <Button asChild variant="outline" size="sm" className="w-full">
                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
