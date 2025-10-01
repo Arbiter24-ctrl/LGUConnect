@@ -32,7 +32,17 @@ export async function middleware(request) {
   console.log('🔍 Middleware executing for:', pathname)
   
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/register', '/api/auth/login', '/api/auth/register']
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/complaints',
+    '/api/complaints/classify',
+    '/api/categories',
+    '/api/barangays'
+  ]
   
   // Check if the current path is a public route
   if (publicRoutes.includes(pathname)) {

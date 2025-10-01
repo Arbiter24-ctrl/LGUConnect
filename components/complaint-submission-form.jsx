@@ -34,6 +34,7 @@ export function ComplaintSubmissionForm() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState("")
   const [attachments, setAttachments] = useState([])
   const [classification, setClassification] = useState(null)
   const [isClassifying, setIsClassifying] = useState(false)
@@ -147,23 +148,35 @@ export function ComplaintSubmissionForm() {
   }
 
   const handleSubmit = async () => {
+    setSubmitError("")
     setIsSubmitting(true)
     try {
+      const payload = {
+        ...formData,
+        // Ensure numeric IDs are sent
+        category_id: formData.category_id ? Number(formData.category_id) : undefined,
+        barangay_id: formData.barangay_id ? Number(formData.barangay_id) : undefined,
+        user_id: formData.user_id ? Number(formData.user_id) : 0,
+      }
+
       const response = await fetch("/api/complaints", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
-      const result = await response.json()
-      if (result.success) {
+      const result = await response.json().catch(() => null)
+      if (response.ok && result?.success) {
         setIsSubmitted(true)
         setCurrentStep(5)
+      } else {
+        setSubmitError(result?.error || `Submission failed (${response.status})`)
       }
     } catch (error) {
       console.error("Error submitting complaint:", error)
+      setSubmitError("Network error while submitting. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -195,9 +208,21 @@ export function ComplaintSubmissionForm() {
             {user ? 'You will receive updates on the status of your complaint.' : 
              'If you provided contact information, you may receive updates on the status of your complaint.'}
           </p>
-          <Button onClick={() => window.location.reload()} className="bg-accent hover:bg-accent/90">
-            Submit Another Complaint
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => window.location.reload()} className="bg-accent hover:bg-accent/90">
+              Submit Another Complaint
+            </Button>
+            <Link href="/complaints">
+              <Button variant="outline" className="border-primary text-primary">
+                Go to Manage Complaints
+              </Button>
+            </Link>
+            <Link href="/trend">
+              <Button variant="outline" className="border-primary text-primary">
+                View Trends
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     )
@@ -658,6 +683,13 @@ export function ComplaintSubmissionForm() {
               >
                 {isSubmitting ? "Submitting..." : "Submit Complaint"}
               </Button>
+              {submitError && (
+                <div className="w-full mt-3">
+                  <Alert variant="destructive">
+                    <AlertDescription>{submitError}</AlertDescription>
+                  </Alert>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
