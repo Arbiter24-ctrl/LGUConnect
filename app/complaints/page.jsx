@@ -106,20 +106,20 @@ export default function ComplaintsPage() {
   // }
 
   return (
-    <div className="container mx-auto px-6 py-6">
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Complaints</h1>
-          <p className="text-muted-foreground">View and manage community complaints</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Complaints</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">View and manage community complaints</p>
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filter Complaints</CardTitle>
+        <Card className="mb-4 sm:mb-6">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-sm sm:text-base">Filter Complaints</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
+          <CardContent className="pt-0">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
@@ -129,29 +129,31 @@ export default function ComplaintsPage() {
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 sm:gap-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -173,61 +175,64 @@ export default function ComplaintsPage() {
           ) : (
             filteredComplaints.map((complaint) => (
               <Card key={complaint.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-foreground">{complaint.title}</h3>
-                        <Badge
-                          variant={
-                            complaint.priority === "urgent"
-                              ? "destructive"
-                              : complaint.priority === "high"
-                                ? "default"
-                                : "secondary"
-                          }
-                        >
-                          {complaint.priority.toUpperCase()}
-                        </Badge>
-                        <Badge variant="outline" style={{ borderColor: complaint.category_color }}>
-                          {complaint.category_name}
-                        </Badge>
-                        {complaint.classification_source && (
-                          <Badge variant="outline" className="text-xs">
-                            {complaint.classification_source === 'ml' ? (
-                              <><Brain className="h-3 w-3 mr-1" />ML</>
-                            ) : complaint.classification_source === 'ai' ? (
-                              <><Zap className="h-3 w-3 mr-1" />AI</>
-                            ) : complaint.classification_source === 'hybrid' ? (
-                              <><BarChart3 className="h-3 w-3 mr-1" />Hybrid</>
-                            ) : (
-                              complaint.classification_source
-                            )}
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{complaint.title}</h3>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
+                          <Badge
+                            variant={
+                              complaint.priority === "urgent"
+                                ? "destructive"
+                                : complaint.priority === "high"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                            className="text-xs"
+                          >
+                            {complaint.priority.toUpperCase()}
                           </Badge>
-                        )}
-                        {complaint.classification_confidence && (
-                          <Badge variant="outline" className="text-xs">
-                            {Math.round(complaint.classification_confidence * 100)}%
+                          <Badge variant="outline" style={{ borderColor: complaint.category_color }} className="text-xs">
+                            {complaint.category_name}
                           </Badge>
-                        )}
+                          {complaint.classification_source && (
+                            <Badge variant="outline" className="text-xs">
+                              {complaint.classification_source === 'ml' ? (
+                                <><Brain className="h-3 w-3 mr-1" />ML</>
+                              ) : complaint.classification_source === 'ai' ? (
+                                <><Zap className="h-3 w-3 mr-1" />AI</>
+                              ) : complaint.classification_source === 'hybrid' ? (
+                                <><BarChart3 className="h-3 w-3 mr-1" />Hybrid</>
+                              ) : (
+                                complaint.classification_source
+                              )}
+                            </Badge>
+                          )}
+                          {complaint.classification_confidence && (
+                            <Badge variant="outline" className="text-xs">
+                              {Math.round(complaint.classification_confidence * 100)}%
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
                         {complaint.description.substring(0, 200)}
                         {complaint.description.length > 200 && "..."}
                       </p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
+                        <span className="truncate">
                           By: {complaint.first_name} {complaint.last_name}
                         </span>
-                        <span>•</span>
+                        <span className="hidden sm:inline">•</span>
                         <span>{new Date(complaint.created_at).toLocaleDateString()}</span>
-                        <span>•</span>
-                        <span>Dept: {complaint.suggested_department}</span>
-                        <span>•</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span className="truncate">Dept: {complaint.suggested_department}</span>
+                        <span className="hidden sm:inline">•</span>
                         <span>Est. {complaint.estimated_resolution_days} days</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:ml-4">
                       <Badge
                         variant={
                           complaint.status === "resolved"
@@ -290,14 +295,7 @@ export default function ComplaintsPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewComplaint(complaint.id)}
-                        title="View Comments"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                      </Button>
+                      {/* Comments button removed per UX update */}
                     </div>
                   </div>
                 </CardContent>

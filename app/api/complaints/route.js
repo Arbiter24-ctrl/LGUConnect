@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { ApiResponse, Complaint } from "@/lib/types"
 import { classifyComplaint } from "@/lib/hybrid-classifier"
+import { translateToEnglish } from "@/lib/utils"
 
 // GET /api/complaints - Fetch complaints with filters
 export async function GET(request) {
@@ -132,7 +133,12 @@ export async function POST(request) {
 
     let classification = null
     try {
-      classification = await classifyComplaint(title, description, location_address)
+      // Auto-translate Cebuano/Filipino to English before analysis
+      const [titleEn, descriptionEn] = await Promise.all([
+        translateToEnglish(title),
+        translateToEnglish(description)
+      ])
+      classification = await classifyComplaint(titleEn, descriptionEn, location_address)
       console.log(`[Hybrid] Classification result (${classification.source}):`, classification)
     } catch (error) {
       console.error("[Hybrid] Classification failed:", error)

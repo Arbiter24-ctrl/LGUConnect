@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { classifyComplaint } from "@/lib/ai-classifier"
+import { translateToEnglish } from "@/lib/utils"
 
 export async function POST(request) {
   try {
@@ -9,7 +10,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 })
     }
 
-    const classification = await classifyComplaint(title, description, location)
+    // Auto-translate Cebuano/Filipino to English for better AI understanding
+    const [titleEn, descriptionEn] = await Promise.all([
+      translateToEnglish(title),
+      translateToEnglish(description)
+    ])
+
+    const classification = await classifyComplaint(titleEn, descriptionEn, location)
 
     return NextResponse.json({
       success: true,

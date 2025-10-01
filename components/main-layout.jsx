@@ -57,7 +57,9 @@ export function MainLayout({ children }) {
     <div className="min-h-screen bg-background">
       {shouldShowSidebar && <SidebarNavigation />}
       <main className={shouldShowSidebar ? "lg:ml-64" : ""}>
-        {children}
+        <div className="min-h-screen">
+          {children}
+        </div>
       </main>
     </div>
   )

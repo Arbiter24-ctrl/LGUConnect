@@ -39,6 +39,7 @@ export function ComplaintSubmissionForm() {
   const [classification, setClassification] = useState(null)
   const [isClassifying, setIsClassifying] = useState(false)
   const [classificationSource, setClassificationSource] = useState(null)
+  const SHOW_INLINE_ANALYSIS = false
 
   // Update user_id when user changes
   useEffect(() => {
@@ -107,14 +108,14 @@ export function ComplaintSubmissionForm() {
     }
   }
 
-  // Real-time classification as user types
+  // Inline auto-analysis disabled to avoid stretching the form; analysis runs on submit in backend
   useEffect(() => {
+    if (!SHOW_INLINE_ANALYSIS) return
     const timer = setTimeout(async () => {
       if (formData.title && formData.description && formData.title.length > 5 && formData.description.length > 10) {
         await classifyComplaint()
       }
-    }, 2000) // Debounced after 2 seconds
-
+    }, 2000)
     return () => clearTimeout(timer)
   }, [formData.title, formData.description])
 
@@ -169,6 +170,19 @@ export function ComplaintSubmissionForm() {
 
       const result = await response.json().catch(() => null)
       if (response.ok && result?.success) {
+        // Upload attachments for this complaint
+        if (attachments.length > 0) {
+          try {
+            const form = new FormData()
+            attachments.forEach((f) => form.append('files', f))
+            await fetch(`/api/complaints/${result.data.id}/attachments`, {
+              method: 'POST',
+              body: form
+            })
+          } catch (e) {
+            console.error('Attachment upload failed:', e)
+          }
+        }
         setIsSubmitted(true)
         setCurrentStep(5)
       } else {
@@ -217,11 +231,6 @@ export function ComplaintSubmissionForm() {
                 Go to Manage Complaints
               </Button>
             </Link>
-            <Link href="/trend">
-              <Button variant="outline" className="border-primary text-primary">
-                View Trends
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
@@ -229,15 +238,15 @@ export function ComplaintSubmissionForm() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
       {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2",
+                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2",
                   currentStep >= step
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-background text-muted-foreground border-border",
@@ -245,29 +254,36 @@ export function ComplaintSubmissionForm() {
               >
                 {step}
               </div>
-              {step < 4 && <div className={cn("h-1 w-20 mx-3", currentStep > step ? "bg-primary" : "bg-border")} />}
+              {step < 4 && <div className={cn("h-1 w-12 sm:w-20 mx-2 sm:mx-3", currentStep > step ? "bg-primary" : "bg-border")} />}
             </div>
           ))}
         </div>
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Complaint Details</span>
-          <span>Contact Info (Optional)</span>
-          <span>Add Evidence</span>
-          <span>Location & Submit</span>
+        <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
+          <span className="hidden sm:inline">Complaint Details</span>
+          <span className="sm:hidden">Details</span>
+          <span className="hidden sm:inline">Contact Info (Optional)</span>
+          <span className="sm:hidden">Contact</span>
+          <span className="hidden sm:inline">Add Evidence</span>
+          <span className="sm:hidden">Evidence</span>
+          <span className="hidden sm:inline">Location & Submit</span>
+          <span className="sm:hidden">Submit</span>
         </div>
       </div>
 
-      {/* Step 1: Complaint Details */}
-      {currentStep === 1 && (
-        <Card className="border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="text-primary">STEP 1: COMPLAINT DETAILS</CardTitle>
-            <CardDescription>
-              Describe your complaint clearly. Select the appropriate category to help us route your concern to the
-              right department.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      {/* Form Container with Consistent Height */}
+      <div className="min-h-[500px] sm:min-h-[600px]">
+
+        {/* Step 1: Complaint Details */}
+        {currentStep === 1 && (
+          <Card className="border-2 border-primary h-full flex flex-col">
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-primary text-sm sm:text-base">STEP 1: COMPLAINT DETAILS</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Describe your complaint clearly. Select the appropriate category to help us route your concern to the
+                right department.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 sm:space-y-6 flex-1 flex flex-col pt-0">
             <div className="space-y-2">
               <Label htmlFor="title" className="text-primary font-semibold">
                 COMPLAINT TITLE
@@ -281,46 +297,46 @@ export function ComplaintSubmissionForm() {
               />
             </div>
 
-        <div className="row grid md:grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-primary font-semibold">
-              CATEGORY
-            </Label>
-            <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
-              <SelectTrigger className="border-2 border-primary">
-                <SelectValue placeholder="Select complaint category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }} />
-                      {category.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-primary font-semibold text-xs sm:text-sm">
+                    CATEGORY
+                  </Label>
+                  <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
+                    <SelectTrigger className="border-2 border-primary">
+                      <SelectValue placeholder="Select complaint category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }} />
+                            {category.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="barangay" className="text-primary font-semibold">
-                BARANGAY
-              </Label>
-              <Select value={formData.barangay_id} onValueChange={(value) => handleInputChange("barangay_id", value)}>
-                <SelectTrigger className="border-2 border-primary">
-                  <SelectValue placeholder="Select your barangay" />
-                </SelectTrigger>
-                <SelectContent>
-                  {barangays.map((barangay) => (
-                    <SelectItem key={barangay.id} value={barangay.id.toString()}>
-                      {barangay.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="barangay" className="text-primary font-semibold text-xs sm:text-sm">
+                    BARANGAY
+                  </Label>
+                  <Select value={formData.barangay_id} onValueChange={(value) => handleInputChange("barangay_id", value)}>
+                    <SelectTrigger className="border-2 border-primary">
+                      <SelectValue placeholder="Select your barangay" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {barangays.map((barangay) => (
+                        <SelectItem key={barangay.id} value={barangay.id.toString()}>
+                          {barangay.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
             <div className="space-y-2">
               <Label htmlFor="description" className="text-primary font-semibold">
@@ -336,7 +352,7 @@ export function ComplaintSubmissionForm() {
             </div>
 
 
-            {formData.title && formData.description && (
+            {SHOW_INLINE_ANALYSIS && formData.title && formData.description && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -349,16 +365,6 @@ export function ComplaintSubmissionForm() {
                       <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-700"></div>
                     )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={classifyComplaint}
-                    disabled={isClassifying}
-                    className="border-green-300 text-green-700 bg-transparent h-7 px-2 text-xs"
-                  >
-                    {isClassifying ? "Analyzing..." : "Analyze"}
-                  </Button>
                 </div>
 
                 {classification && (
@@ -395,27 +401,35 @@ export function ComplaintSubmissionForm() {
               </div>
             )}
 
-            <Button
-              onClick={() => setCurrentStep(2)}
-              disabled={!canProceedToStep2}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              Continue to Evidence
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+              {!SHOW_INLINE_ANALYSIS && (
+                <div className="text-xs text-muted-foreground">
+                  Smart analysis will run automatically after you submit.
+                </div>
+              )}
 
-      {/* Step 2: Contact Information (Optional) */}
-      {currentStep === 2 && (
-        <Card className="border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="text-primary">STEP 2: CONTACT INFORMATION (OPTIONAL)</CardTitle>
-            <CardDescription>
-              Provide your contact details to receive updates about your complaint. You can skip this step to remain anonymous.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+              <div className="mt-auto pt-6">
+                <Button
+                  onClick={() => setCurrentStep(2)}
+                  disabled={!canProceedToStep2}
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  Continue to Evidence
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 2: Contact Information (Optional) */}
+        {currentStep === 2 && (
+          <Card className="border-2 border-primary h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-primary">STEP 2: CONTACT INFORMATION (OPTIONAL)</CardTitle>
+              <CardDescription>
+                Provide your contact details to receive updates about your complaint. You can skip this step to remain anonymous.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 flex-1 flex flex-col">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-green-800 text-sm">
                 <strong>🔒 Privacy Notice:</strong> Your contact information is optional and will only be used to provide updates about your complaint. You can skip this step to submit anonymously.
@@ -465,43 +479,38 @@ export function ComplaintSubmissionForm() {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(1)}
-                className="flex-1 border-primary text-primary"
-              >
-                Back
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(3)}
-                className="flex-1 border-primary text-primary"
-              >
-                Skip & Continue
-              </Button>
-              <Button
-                onClick={() => setCurrentStep(3)}
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                Continue
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="mt-auto pt-6">
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 border-primary text-primary"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentStep(3)}
+                    className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Step 3: Add Evidence */}
-      {currentStep === 3 && (
-        <Card className="border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="text-primary">STEP 3: ADD EVIDENCE</CardTitle>
-            <CardDescription>
-              Upload photos or videos to support your complaint. Visual evidence helps officials understand and resolve
-              issues faster.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* Step 3: Add Evidence */}
+        {currentStep === 3 && (
+          <Card className="border-2 border-primary h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-primary">STEP 3: ADD EVIDENCE</CardTitle>
+              <CardDescription>
+                Upload photos or videos to support your complaint. Visual evidence helps officials understand and resolve
+                issues faster.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 flex-1 flex flex-col">
             <div className="space-y-4">
               <Label className="text-primary font-semibold">UPLOAD FILES</Label>
 
@@ -545,35 +554,37 @@ export function ComplaintSubmissionForm() {
               )}
             </div>
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(1)}
-                className="flex-1 border-primary text-primary"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={() => setCurrentStep(4)}
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                Continue to Location
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="mt-auto pt-6">
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 border-primary text-primary"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentStep(4)}
+                    className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    Continue to Location
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Step 4: Location & Submit */}
-      {currentStep === 4 && (
-        <Card className="border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="text-primary">STEP 4: LOCATION & SUBMIT</CardTitle>
-            <CardDescription>
-              Provide the location where the issue occurred. This helps officials respond more effectively.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* Step 4: Location & Submit */}
+        {currentStep === 4 && (
+          <Card className="border-2 border-primary h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-primary">STEP 4: LOCATION & SUBMIT</CardTitle>
+              <CardDescription>
+                Provide the location where the issue occurred. This helps officials respond more effectively.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 flex-1 flex flex-col">
             <div className="space-y-2">
               <Label htmlFor="location" className="text-primary font-semibold">
                 LOCATION ADDRESS
@@ -668,32 +679,35 @@ export function ComplaintSubmissionForm() {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(3)}
-                className="flex-1 border-primary text-primary"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={!canProceedToStep3 || isSubmitting}
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                {isSubmitting ? "Submitting..." : "Submit Complaint"}
-              </Button>
-              {submitError && (
-                <div className="w-full mt-3">
-                  <Alert variant="destructive">
-                    <AlertDescription>{submitError}</AlertDescription>
-                  </Alert>
+              <div className="mt-auto pt-6">
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep(3)}
+                    className="flex-1 border-primary text-primary"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceedToStep3 || isSubmitting}
+                    className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Complaint"}
+                  </Button>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                {submitError && (
+                  <div className="w-full mt-3">
+                    <Alert variant="destructive">
+                      <AlertDescription>{submitError}</AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

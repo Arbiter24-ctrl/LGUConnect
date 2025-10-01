@@ -35,6 +35,7 @@ import {
   Zap,
   BarChart3,
 } from "lucide-react"
+import { PageHeader } from "../../components/page-header"
 
 export default function OfficialsDashboard() {
   const { user, loading: userLoading } = useUser()
@@ -172,29 +173,19 @@ export default function OfficialsDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Barangay Officials Dashboard</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Complaint Management & Analytics</p>
-      </div>
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <Button variant="outline" size="sm" className="w-full sm:w-auto">
-              <Download className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
-            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-              Last updated: {new Date().toLocaleString()}
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <PageHeader
+        title="Barangay Officials Dashboard"
+        subtitle="Complaint Management & Analytics"
+        showExportButton={true}
+        showUserControls={true}
+        onExport={() => console.log('Export clicked')}
+      />
+      
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Card className="bg-card border-border">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -257,12 +248,13 @@ export default function OfficialsDashboard() {
               </div>
               <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 flex-shrink-0" />
             </div>
-            <div className="flex items-center mt-3 sm:mt-4 text-xs sm:text-sm">
-              <span className="text-red-500 truncate">Requires immediate attention</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              <div className="flex items-center mt-3 sm:mt-4 text-xs sm:text-sm">
+                <span className="text-red-500 truncate">Requires immediate attention</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        </div>
 
       {/* ML Performance Section */}
       {/* {mlStats && (

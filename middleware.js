@@ -30,6 +30,11 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl
   
   console.log('🔍 Middleware executing for:', pathname)
+
+  // Allow static assets (images, styles, scripts, fonts, maps, etc.) without auth
+  if (/\.(?:png|jpg|jpeg|webp|svg|gif|ico|css|js|map|txt|xml|json|woff|woff2|ttf|otf)$/i.test(pathname)) {
+    return NextResponse.next()
+  }
   
   // Public routes that don't require authentication
   const publicRoutes = [
