@@ -107,11 +107,6 @@ export default function ComplaintsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Complaints</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">View and manage community complaints</p>
-        </div>
 
         {/* Filters */}
         <Card className="mb-4 sm:mb-6">

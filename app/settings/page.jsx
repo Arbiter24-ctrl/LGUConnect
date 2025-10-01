@@ -99,10 +99,6 @@ const SettingsPage = () => {
 
   return (
     <div className="w-full px-6 py-6 space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Settings className="h-6 w-6" />
-        <h1 className="text-3xl font-bold">Settings</h1>
-      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Notifications */}

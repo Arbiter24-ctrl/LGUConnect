@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import * as React from '@radix-ui/react-dropdown-menu'
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
@@ -64,9 +64,6 @@ function DropdownMenuItem({
   inset,
   variant = 'default',
   ...props
-} & {
-  inset?: boolean
-  variant?: 'default' | 'destructive'
 }) {
   return (
     <DropdownMenuPrimitive.Item
@@ -93,7 +90,6 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
       )}
       checked={checked}
       {...props}
@@ -129,7 +125,6 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
       )}
       {...props}
     >
@@ -147,8 +142,7 @@ function DropdownMenuLabel({
   className,
   inset,
   ...props
-} & {
-  inset?) {
+}) {
   return (
     <DropdownMenuPrimitive.Label
       data-slot="dropdown-menu-label"
@@ -202,8 +196,7 @@ function DropdownMenuSubTrigger({
   inset,
   children,
   ...props
-} & {
-  inset?) {
+}) {
   return (
     <DropdownMenuPrimitive.SubTrigger
       data-slot="dropdown-menu-sub-trigger"
@@ -253,4 +246,3 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 }
-
