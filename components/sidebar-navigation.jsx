@@ -97,11 +97,14 @@ export function SidebarNavigation({ className }) {
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out",
+        "fixed left-0 top-0 z-50 h-full w-64 border-r border-sidebar-border transform transition-transform duration-300 ease-in-out",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
         className
-      )}>
+      )}
+      style={{
+        background: "linear-gradient(25deg, #187c19, #e0ffe7, #187c19)"
+      }}>
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-sidebar-border flex-shrink-0">

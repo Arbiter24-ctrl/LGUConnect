@@ -95,10 +95,10 @@ export async function PATCH(request, { params }) {
       updateParams.push(resolution_notes)
     }
     if (status === "resolved") {
-      updateFields.push("resolved_at = NOW()")
+        updateFields.push("resolved_at = CURRENT_TIMESTAMP")
     }
 
-    updateFields.push("updated_at = NOW()")
+    updateFields.push("updated_at = CURRENT_TIMESTAMP")
     updateParams.push(complaintId)
 
     await db.update(`UPDATE complaints SET ${updateFields.join(", ")} WHERE id = ?`, updateParams)

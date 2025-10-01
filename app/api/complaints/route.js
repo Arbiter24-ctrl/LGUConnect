@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { ApiResponse, Complaint } from "@/lib/types"
 import { classifyComplaint } from "@/lib/hybrid-classifier"
+import { translateToEnglish } from "@/lib/utils"
 
 // GET /api/complaints - Fetch complaints with filters
 export async function GET(request) {
@@ -93,26 +94,66 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }
 
-    // For anonymous submissions, set user_id to 0
-    const finalUserId = user_id || 0
+    // Resolve a valid user id. If none provided, use a seeded resident or create an Anonymous user
+    let finalUserId = user_id ? Number(user_id) : null
+    if (!finalUserId) {
+      // Try seeded resident first
+      const seededResident = await db.findOne(
+        'SELECT id FROM users WHERE email = ? LIMIT 1',
+        ['resident@barangay.com']
+      )
+      if (seededResident?.id) {
+        finalUserId = seededResident.id
+      } else {
+        // Fallback to any resident
+        const anyResident = await db.findOne(
+          "SELECT id FROM users WHERE role = 'resident' LIMIT 1",
+          []
+        )
+        if (anyResident?.id) {
+          finalUserId = anyResident.id
+        } else {
+          // Create a minimal Anonymous user
+          const anonEmail = `anonymous_${Date.now()}@local`
+          const anonPasswordHash = '0000000000000000000000000000000000000000000000000000000000000000'
+          const insertAnonSql = `
+            INSERT INTO users (email, password_hash, first_name, last_name, role)
+            VALUES (?, ?, ?, ?, ?)
+          `
+          finalUserId = await db.insert(insertAnonSql, [
+            anonEmail,
+            anonPasswordHash,
+            'Anonymous',
+            'User',
+            'resident'
+          ])
+        }
+      }
+    }
 
     let classification = null
     try {
-      classification = await classifyComplaint(title, description, location_address)
+      // Auto-translate Cebuano/Filipino to English before analysis
+      const [titleEn, descriptionEn] = await Promise.all([
+        translateToEnglish(title),
+        translateToEnglish(description)
+      ])
+      classification = await classifyComplaint(titleEn, descriptionEn, location_address)
       console.log(`[Hybrid] Classification result (${classification.source}):`, classification)
     } catch (error) {
       console.error("[Hybrid] Classification failed:", error)
       // Continue without classification if it fails
     }
 
+    // Normalize priority to match DB constraint (low|medium|high)
+    const normalizedPriority = (classification?.priority || 'medium').toLowerCase()
+
     const sql = `
       INSERT INTO complaints (
-        user_id, category_id, title, description, 
+        user_id, category_id, title, description,
         location_lat, location_lng, location_address, barangay_id,
-        priority, urgency_score, sentiment, keywords, 
-        suggested_department, estimated_resolution_days,
-        anonymous_name, anonymous_email, anonymous_phone
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        priority, anonymous_name, anonymous_email, anonymous_phone
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
     const complaintId = await db.insert(sql, [
@@ -124,49 +165,23 @@ export async function POST(request) {
       location_lng || null,
       location_address || null,
       barangay_id,
-      classification?.priority || "medium",
-      classification?.urgency_score || 5,
-      classification?.sentiment || "neutral",
-      classification?.keywords ? JSON.stringify(classification.keywords) : null,
-      classification?.suggested_department || "Administrative Office",
-      classification?.estimated_resolution_days || 7,
+      ['low', 'medium', 'high'].includes(normalizedPriority) ? normalizedPriority : 'medium',
       anonymous_name || null,
       anonymous_email || null,
       anonymous_phone || null,
     ])
 
-    if (classification) {
-      await db.insert(
-        `
-        INSERT INTO ai_classifications (
-          complaint_id, category, subcategory, priority, urgency_score,
-          sentiment, keywords, suggested_department, estimated_resolution_days,
-          confidence_score, classification_source, processing_time_ms
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-        [
-          complaintId,
-          classification.category,
-          classification.subcategory,
-          classification.priority,
-          classification.urgency_score,
-          classification.sentiment,
-          JSON.stringify(classification.keywords),
-          classification.suggested_department,
-          classification.estimated_resolution_days,
-          classification.confidence || 0.85,
-          classification.source || 'unknown',
-          classification.processing_time || 0
-        ],
-      )
-    }
+    // Optional: store classification elsewhere. Skipping ai_classifications insert due to schema mismatch.
 
     // Log status history
-    await db.insert("INSERT INTO complaint_status_history (complaint_id, new_status, changed_by) VALUES (?, ?, ?)", [
-      complaintId,
-      "submitted",
-      finalUserId,
-    ])
+    await db.insert(
+      "INSERT INTO complaint_status_history (complaint_id, new_status, changed_by) VALUES (?, ?, ?)",
+      [
+        complaintId,
+        "submitted",
+        finalUserId || null,
+      ]
+    )
 
     const response = {
       success: true,
