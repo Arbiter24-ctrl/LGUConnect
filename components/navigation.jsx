@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button'
 import { Shield, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,8 +14,14 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-              <Shield className="h-6 w-6 text-primary" />
+            <div className="relative w-10 h-10 flex-shrink-0">
+              <Image
+                src="/Lguconnect.png"
+                alt="LGU Connect Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
@@ -30,10 +37,10 @@ export function Navigation() {
               Home
             </Link>
             <Link href="#submit-complaint" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Submit
+              Submit Complaint
             </Link>
-            <Link href="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Track Status
+            <Link href="/track" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Track Complaint
             </Link>
             <Link href="/trend" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Analytics
@@ -42,10 +49,7 @@ export function Navigation() {
 
           <div className="hidden md:flex items-center space-x-4">
             <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/register">Register</Link>
+              <Link href="/login">Barangay Login</Link>
             </Button>
           </div>
 
@@ -79,11 +83,11 @@ export function Navigation() {
                 Submit Complaint
               </Link>
               <Link 
-                href="/login" 
+                href="/track" 
                 className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Track Status
+                Track Complaint
               </Link>
               <Link 
                 href="/trend" 
@@ -94,10 +98,7 @@ export function Navigation() {
               </Link>
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
                 <Button asChild variant="ghost" size="sm" className="justify-start">
-                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                </Button>
-                <Button asChild size="sm" className="justify-start">
-                  <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>Barangay Login</Link>
                 </Button>
               </div>
             </nav>

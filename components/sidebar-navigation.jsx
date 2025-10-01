@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '../lib/utils'
+import Image from 'next/image'
 
 export function SidebarNavigation({ className }) {
   const { user } = useUser()
@@ -105,8 +106,16 @@ export function SidebarNavigation({ className }) {
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-sidebar-border flex-shrink-0">
-            <Link href="/dashboard" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
-              <Shield className="h-8 w-8 text-sidebar-primary" />
+            <Link href="/dashboard" className="flex items-center space-x-3" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <Image
+                  src="/Lguconnect.png"
+                  alt="LGU Connect Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
               <div>
                 <h1 className="text-lg font-bold text-sidebar-primary">Admin Panel</h1>
                 <p className="text-xs text-sidebar-foreground/70">Complaint Management</p>

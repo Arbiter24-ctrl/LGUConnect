@@ -32,11 +32,11 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex space-x-3">
-              <Link href="/login">
-                <Button variant="outline" size="sm">Sign In</Button>
+              <Link href="/track">
+                <Button variant="outline" size="sm">Track Complaint</Button>
               </Link>
-              <Link href="/register">
-                <Button size="sm">Get Started</Button>
+              <Link href="/login">
+                <Button size="sm">Barangay Login</Button>
               </Link>
             </div>
           </div>
@@ -56,10 +56,10 @@ export default function HomePage() {
                 Welcome to <span className="text-green-300">Tagum City</span>
               </h1>
               <h2 className="text-2xl lg:text-3xl font-semibold text-white mb-6 drop-shadow-lg">
-                Digital Complaint Management System
+                Community Complaint System
               </h2>
               <p className="text-lg text-white/90 mb-8 drop-shadow-md">
-                Empowering Tagum City residents with a modern, transparent platform to submit, track, and resolve community concerns.
+                Submit complaints anonymously and track their progress. No registration required - just your tracking code to follow up.
               </p>
             </div>
 

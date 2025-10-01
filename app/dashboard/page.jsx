@@ -241,10 +241,21 @@ export default function OfficialsDashboard() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-      {/* Page Actions */}
+      {/* Dashboard Header */}
       <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              {user?.role === 'admin' ? 'City Administration Dashboard' : `${user?.barangay || 'Barangay'} Dashboard`}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {user?.role === 'admin' 
+                ? 'Manage all barangay complaints across Tagum City' 
+                : `Manage complaints for ${user?.barangay || 'your barangay'}`
+              }
+            </p>
+          </div>
+          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
             Last updated: {new Date().toLocaleString()}
           </div>
         </div>

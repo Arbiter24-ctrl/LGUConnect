@@ -39,6 +39,7 @@ export function ComplaintSubmissionForm() {
   const [classification, setClassification] = useState(null)
   const [isClassifying, setIsClassifying] = useState(false)
   const [classificationSource, setClassificationSource] = useState(null)
+  const [submissionData, setSubmissionData] = useState(null)
   const SHOW_INLINE_ANALYSIS = false
 
   // Update user_id when user changes
@@ -183,6 +184,7 @@ export function ComplaintSubmissionForm() {
             console.error('Attachment upload failed:', e)
           }
         }
+        setSubmissionData(result.data)
         setIsSubmitted(true)
         setCurrentStep(5)
       } else {
@@ -218,17 +220,45 @@ export function ComplaintSubmissionForm() {
           <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-primary mb-2">Complaint Submitted Successfully!</h2>
           <p className="text-muted-foreground mb-6">
-            Your complaint has been received and will be reviewed by barangay officials. 
-            {user ? 'You will receive updates on the status of your complaint.' : 
-             'If you provided contact information, you may receive updates on the status of your complaint.'}
+            Your complaint has been received and will be reviewed by barangay officials.
           </p>
+          
+          {/* Tracking Information */}
+          {submissionData && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+              <h3 className="font-semibold text-gray-900 mb-3">Your Complaint Details:</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Reference Number:</span>
+                  <span className="font-mono font-medium">{submissionData.reference_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tracking Code:</span>
+                  <span className="font-mono font-medium text-blue-600">{submissionData.tracking_code}</span>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                <p className="text-sm text-blue-800">
+                  <strong>Save your tracking code:</strong> Use <span className="font-mono">{submissionData.tracking_code}</span> to track your complaint status at any time.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button onClick={() => window.location.reload()} className="bg-accent hover:bg-accent/90">
               Submit Another Complaint
             </Button>
-            <Link href="/complaints">
-              <Button variant="outline" className="border-primary text-primary">
-                Go to Manage Complaints
+            {submissionData && (
+              <Link href={`/track?code=${submissionData.tracking_code}`}>
+                <Button variant="outline" className="border-primary text-primary">
+                  Track This Complaint
+                </Button>
+              </Link>
+            )}
+            <Link href="/track">
+              <Button variant="outline" className="border-gray-300 text-gray-700">
+                Track Any Complaint
               </Button>
             </Link>
           </div>
