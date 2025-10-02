@@ -4,7 +4,6 @@ import { useUser } from '../lib/user-context'
 import { Button } from './ui/button'
 import { Avatar, AvatarFallback } from './ui/avatar'
 import { 
-  Bell, 
   User,
   Home,
   MessageSquare,
@@ -102,19 +101,8 @@ export function Header({ className = "" }) {
           </div>
         </div>
 
-        {/* Right side - Notifications and User dropdown */}
+        {/* Right side - User dropdown */}
         <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-white/10 relative p-2"
-          >
-            <Bell className="w-4 h-4" />
-            {/* Notification badge */}
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full text-xs"></span>
-          </Button>
-
           {/* User dropdown */}
           {user && (
             <div className="relative">

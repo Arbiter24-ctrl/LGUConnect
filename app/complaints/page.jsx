@@ -106,33 +106,53 @@ export default function ComplaintsPage() {
 
   const handleStatusUpdate = async (complaintId, newStatus) => {
     setUpdatingStatus(prev => ({ ...prev, [complaintId]: true }))
+    
     try {
+      console.log(`🔄 Updating complaint ${complaintId} status to: ${newStatus}`)
+      
       const response = await fetch(`/api/complaints/${complaintId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          status: newStatus
+          status: newStatus,
+          changed_by: user?.id || null
         })
       })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
 
       const result = await response.json()
       
       if (result.success) {
-        // Update local complaints state
+        console.log(`✅ Successfully updated complaint ${complaintId} to ${newStatus}`)
+        
+        // Update local complaints state immediately
         setComplaints(prev => 
           prev.map(complaint => 
             complaint.id === complaintId 
-              ? { ...complaint, status: newStatus }
+              ? { 
+                  ...complaint, 
+                  status: newStatus,
+                  updated_at: new Date().toISOString(),
+                  ...(newStatus === 'resolved' && { resolved_at: new Date().toISOString() })
+                }
               : complaint
           )
         )
+        
+        // Show success feedback (optional)
+        console.log(`Status updated to ${newStatus.replace('_', ' ').toUpperCase()}`)
       } else {
         console.error("Failed to update status:", result.error)
+        alert(`Failed to update status: ${result.error}`)
       }
     } catch (error) {
       console.error("Error updating status:", error)
+      alert(`Error updating status: ${error.message}`)
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [complaintId]: false }))
     }
@@ -300,7 +320,11 @@ export default function ComplaintsPage() {
                               title="Mark as In Progress"
                               className="h-8 px-2"
                             >
-                              <PlayCircle className="w-3 h-3" />
+                              {updatingStatus[complaint.id] ? (
+                                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <PlayCircle className="w-3 h-3" />
+                              )}
                             </Button>
                           )}
                           {complaint.status === 'in_progress' && (
@@ -312,7 +336,11 @@ export default function ComplaintsPage() {
                               title="Mark as Resolved"
                               className="h-8 px-2"
                             >
-                              <CheckCircle className="w-3 h-3" />
+                              {updatingStatus[complaint.id] ? (
+                                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-3 h-3" />
+                              )}
                             </Button>
                           )}
                           {complaint.status === 'submitted' && (
@@ -324,7 +352,11 @@ export default function ComplaintsPage() {
                               title="Mark as Resolved"
                               className="h-8 px-2"
                             >
-                              <CheckCircle className="w-3 h-3" />
+                              {updatingStatus[complaint.id] ? (
+                                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-3 h-3" />
+                              )}
                             </Button>
                           )}
                         </div>
