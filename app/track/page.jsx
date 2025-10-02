@@ -270,7 +270,7 @@ export default function TrackPage() {
           {/* Footer */}
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-4">
-              Don't have a tracking code?{' '}
+              Don&apos;t have a tracking code?{' '}
               <Link href="/" className="text-blue-600 hover:underline">
                 Submit a new complaint
               </Link>

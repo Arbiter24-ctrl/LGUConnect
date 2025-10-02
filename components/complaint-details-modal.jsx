@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
@@ -23,7 +23,9 @@ import {
   BarChart3,
   AlertTriangle,
   CheckCircle,
-  PlayCircle
+  PlayCircle,
+  Mail,
+  Phone
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -41,26 +43,7 @@ export default function ComplaintDetailsModal({
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800)
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (isOpen && complaintId) {
-      fetchComplaintDetails()
-      fetchComments()
-    }
-  }, [isOpen, complaintId])
-
-  // Handle window resize to ensure proper scrolling
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight)
-    }
-
-    if (isOpen) {
-      window.addEventListener('resize', handleResize)
-      return () => window.removeEventListener('resize', handleResize)
-    }
-  }, [isOpen])
-
-  const fetchComplaintDetails = async () => {
+  const fetchComplaintDetails = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`/api/complaints/${complaintId}`)
@@ -85,9 +68,9 @@ export default function ComplaintDetailsModal({
     } finally {
       setLoading(false)
     }
-  }
+  }, [complaintId, toast])
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(`/api/complaints/${complaintId}/comments`)
       const result = await response.json()
@@ -98,7 +81,26 @@ export default function ComplaintDetailsModal({
     } catch (error) {
       console.error("Error fetching comments:", error)
     }
-  }
+  }, [complaintId])
+
+  useEffect(() => {
+    if (isOpen && complaintId) {
+      fetchComplaintDetails()
+      fetchComments()
+    }
+  }, [isOpen, complaintId, fetchComments, fetchComplaintDetails])
+
+  // Handle window resize to ensure proper scrolling
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight)
+    }
+
+    if (isOpen) {
+      window.addEventListener('resize', handleResize)
+      return () => window.removeEventListener('resize', handleResize)
+    }
+  }, [isOpen])
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return
@@ -512,7 +514,12 @@ export default function ComplaintDetailsModal({
                         <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <div className="min-w-0">
                           <p className="text-xs sm:text-sm font-medium">Complainant</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{complaint.first_name} {complaint.last_name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                            {complaint.anonymous_name || (complaint.first_name && complaint.last_name) 
+                              ? (complaint.anonymous_name || `${complaint.first_name} ${complaint.last_name}`)
+                              : 'Anonymous'
+                            }
+                          </p>
                         </div>
                       </div>
                       
@@ -546,6 +553,26 @@ export default function ComplaintDetailsModal({
                                 </Button>
                               </div>
                             )}
+                          </div>
+                        </div>
+                      )}
+
+                      {complaint.anonymous_email && (
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-medium">Email</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">{complaint.anonymous_email}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {complaint.anonymous_phone && (
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-medium">Phone</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">{complaint.anonymous_phone}</p>
                           </div>
                         </div>
                       )}

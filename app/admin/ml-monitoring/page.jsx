@@ -208,7 +208,7 @@ export default function MLMonitoringPage() {
                   <Badge variant="secondary">{mlStats.confidenceDistribution.medium}%</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Low Confidence (<60%)</span>
+                  <span className="text-sm font-medium">Low Confidence (&lt;60%)</span>
                   <Badge variant="destructive">{mlStats.confidenceDistribution.low}%</Badge>
                 </div>
               </CardContent>

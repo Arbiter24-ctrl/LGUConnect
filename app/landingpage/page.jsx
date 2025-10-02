@@ -9,11 +9,11 @@ import Link from "next/link"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-16">
       <Navigation />
       
       {/* Main Content */}
-      <main className="flex-1">
+      <main>
         {/* Hero Section */}
         <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"></div>
@@ -167,7 +167,7 @@ export default function LandingPage() {
       </main>
 
       {/* Small Footer */}
-      <footer className="bg-green-800 border-t border-green-700 py-4">
+      <footer className="bg-green-800 border-t border-green-700 py-4 fixed bottom-0 left-0 right-0 z-10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center space-x-2 text-sm text-green-200">
             <Shield className="h-4 w-4 text-green-400" />

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
@@ -8,8 +9,11 @@ import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Search, Eye, MessageSquare, Clock, AlertTriangle, FileText, Brain, Zap, BarChart3, CheckCircle, PlayCircle } from "lucide-react"
 import ComplaintDetailsModal from "../../components/complaint-details-modal"
+import { useUser } from "../../lib/user-context"
 
 export default function ComplaintsPage() {
+  const { user, loading: userLoading } = useUser()
+  const router = useRouter()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -19,16 +23,41 @@ export default function ComplaintsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState({})
 
-  useEffect(() => {
-    fetchComplaints()
-  }, [])
-
-  const fetchComplaints = async () => {
+  const fetchComplaints = useCallback(async () => {
     // Set loading to false immediately to show page
     setLoading(false)
     
     try {
-      const response = await fetch("/api/complaints")
+      // First, get all barangays to find the user's barangay ID
+      let barangayId = null
+      if (user?.barangay) {
+        try {
+          const barangaysResponse = await fetch("/api/barangays")
+          const barangaysResult = await barangaysResponse.json()
+          if (barangaysResult.success) {
+            const userBarangay = barangaysResult.data.find(b => b.name === user.barangay)
+            if (userBarangay) {
+              barangayId = userBarangay.id
+              console.log('📋 Complaints: User barangay ID found:', barangayId, 'for barangay:', user.barangay)
+            } else {
+              console.warn('📋 Complaints: User barangay not found in database:', user.barangay)
+            }
+          }
+        } catch (error) {
+          console.error('📋 Complaints: Error fetching barangays:', error)
+        }
+      }
+
+      // Build the complaints API URL with barangay filtering
+      let complaintsUrl = "/api/complaints"
+      if (barangayId) {
+        complaintsUrl += `?barangay_id=${barangayId}`
+        console.log('📋 Complaints: Filtering complaints by barangay_id:', barangayId)
+      } else {
+        console.log('📋 Complaints: No barangay filtering applied')
+      }
+
+      const response = await fetch(complaintsUrl)
       const result = await response.json()
 
       if (result.success) {
@@ -37,7 +66,23 @@ export default function ComplaintsPage() {
     } catch (error) {
       console.error("Error fetching complaints:", error)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.push('/login')
+      return
+    }
+
+    if (!userLoading && user && user.role !== 'admin' && user.role !== 'official') {
+      router.push('/')
+      return
+    }
+
+    if (user) {
+      fetchComplaints()
+    }
+  }, [user, userLoading, router, fetchComplaints])
 
   const filteredComplaints = complaints.filter((complaint) => {
     const matchesSearch =
@@ -217,7 +262,10 @@ export default function ComplaintsPage() {
                       </p>
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                         <span className="truncate">
-                          By: {complaint.first_name} {complaint.last_name}
+                          By: {complaint.anonymous_name || (complaint.first_name && complaint.last_name) 
+                            ? (complaint.anonymous_name || `${complaint.first_name} ${complaint.last_name}`)
+                            : 'Anonymous'
+                          }
                         </span>
                         <span className="hidden sm:inline">•</span>
                         <span>{new Date(complaint.created_at).toLocaleDateString()}</span>

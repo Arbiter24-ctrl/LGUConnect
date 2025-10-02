@@ -10,19 +10,32 @@ import {
   X,
   Home,
   MessageSquare,
-  Users
+  Users,
+  Download
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '../lib/utils'
 import Image from 'next/image'
+import { useComplaintStats } from '../hooks/use-complaint-stats'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
 
 export function SidebarNavigation({ className }) {
   const { user } = useUser()
   const router = useRouter()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [reportFilters, setReportFilters] = useState({
+    type: '',
+    dateFrom: '',
+    dateTo: '',
+    category: '',
+    status: ''
+  })
+  const { stats, loading: statsLoading } = useComplaintStats()
 
   const navigationCategories = [
     {
@@ -57,15 +70,33 @@ export function SidebarNavigation({ className }) {
           icon: Users,
           show: user?.role === 'admin',
         },
-        {
-          name: 'Reports',
-          href: '/reports',
-          icon: FileText,
-          show: true,
-        },
       ]
     }
   ]
+
+  const generateReport = async () => {
+    try {
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (reportFilters.type) params.append('type', reportFilters.type)
+      if (reportFilters.dateFrom) params.append('dateFrom', reportFilters.dateFrom)
+      if (reportFilters.dateTo) params.append('dateTo', reportFilters.dateTo)
+      if (reportFilters.category) params.append('category', reportFilters.category)
+      if (reportFilters.status && reportFilters.status !== 'all') params.append('status', reportFilters.status)
+      if (user?.barangay) params.append('barangay', user.barangay)
+
+      // Create download link
+      const url = `/api/reports/generate?${params.toString()}`
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `complaint_report_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error('Error generating report:', error)
+    }
+  }
 
   // Quick actions removed
 
@@ -107,12 +138,12 @@ export function SidebarNavigation({ className }) {
           {/* Header */}
           <div className="p-6 border-b border-sidebar-border flex-shrink-0">
             <Link href="/dashboard" className="flex items-center space-x-3" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="relative w-10 h-10 flex-shrink-0">
+              <div className="relative w-12 h-12 flex-shrink-0 bg-white rounded-full p-2 shadow-lg">
                 <Image
                   src="/Lguconnect.png"
                   alt="LGU Connect Logo"
                   fill
-                  className="object-contain"
+                  className="object-contain p-1"
                   priority
                 />
               </div>
@@ -128,14 +159,25 @@ export function SidebarNavigation({ className }) {
             <div className="px-4 py-3 border-b border-sidebar-border">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/10 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-white">12</div>
-                  <div className="text-xs text-white/70">Today's</div>
+                  <div className="text-lg font-bold text-white">
+                    {statsLoading ? '...' : stats.today}
+                  </div>
+                  <div className="text-xs text-white/70">Today&apos;s</div>
                 </div>
                 <div className="bg-white/10 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-white">8</div>
+                  <div className="text-lg font-bold text-white">
+                    {statsLoading ? '...' : stats.pending}
+                  </div>
                   <div className="text-xs text-white/70">Pending</div>
                 </div>
               </div>
+              {user.barangay && (
+                <div className="mt-2 text-center">
+                  <div className="text-xs text-white/60">
+                    {user.barangay}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -176,6 +218,83 @@ export function SidebarNavigation({ className }) {
                 </div>
               )
             })}
+
+            {/* Reports Section */}
+            {user && (
+              <div className="space-y-2 pt-6 mt-4 border-t border-sidebar-border/30">
+                <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider px-3">
+                  Reports
+                </h3>
+                
+                <div className="px-4 py-3 space-y-4 bg-white/90 rounded-lg mx-3 border border-white/20 shadow-sm">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-gray-700">Report Type</Label>
+                    <Select
+                      value={reportFilters.type}
+                      onValueChange={(value) => setReportFilters(prev => ({ ...prev, type: value }))}
+                    >
+                      <SelectTrigger className="w-full h-9 text-xs bg-white border-gray-200">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="summary">Summary</SelectItem>
+                        <SelectItem value="detailed">Detailed</SelectItem>
+                        <SelectItem value="status">Status Report</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-700">From</Label>
+                      <Input
+                        type="date"
+                        value={reportFilters.dateFrom}
+                        onChange={(e) => setReportFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                        className="w-full h-9 text-xs bg-white border-gray-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-700">To</Label>
+                      <Input
+                        type="date"
+                        value={reportFilters.dateTo}
+                        onChange={(e) => setReportFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                        className="w-full h-9 text-xs bg-white border-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-gray-700">Status</Label>
+                    <Select
+                      value={reportFilters.status}
+                      onValueChange={(value) => setReportFilters(prev => ({ ...prev, status: value }))}
+                    >
+                      <SelectTrigger className="w-full h-9 text-xs bg-white border-gray-200">
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="submitted">Submitted</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={generateReport}
+                    size="sm"
+                    className="w-full h-9 text-xs font-medium bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Download className="h-3 w-3 mr-2" />
+                    Generate Report
+                  </Button>
+                </div>
+              </div>
+            )}
           </nav>
 
           {/* Quick Actions removed */}

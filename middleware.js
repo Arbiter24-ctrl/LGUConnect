@@ -44,9 +44,11 @@ export async function middleware(request) {
     '/api/auth/login',
     '/api/complaints',
     '/api/complaints/classify',
+    '/api/complaints/with-attachments',
     '/api/categories',
     '/api/barangays',
-    '/api/track'
+    '/api/track',
+    '/api/reports/generate'
   ]
   
   // Check if the current path is a public route
