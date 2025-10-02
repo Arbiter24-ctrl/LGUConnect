@@ -9,6 +9,11 @@ export const metadata = {
   title: 'Barangay Complaint Management System',
   description: 'Submit and track community complaints efficiently',
   generator: 'v0.app',
+  icons: {
+    icon: '/Lguconnect.png',
+    shortcut: '/Lguconnect.png',
+    apple: '/Lguconnect.png',
+  },
 }
 
 export default function RootLayout({ children }) {

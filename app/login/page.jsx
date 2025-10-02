@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '../../lib/user-context'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
@@ -86,6 +87,17 @@ export default function LoginPage() {
         {/* Welcome Text */}
         <div className="relative z-10 flex flex-col justify-center items-center text-white p-12 h-full w-full">
           <div className="text-center w-full">
+            <div className="mb-8">
+              <div className="relative w-16 h-16 mx-auto mb-6">
+                <Image
+                  src="/Lguconnect.png"
+                  alt="LGU Connect Logo"
+                  fill
+                  className="object-contain drop-shadow-lg"
+                  priority
+                />
+              </div>
+            </div>
             <h1 className="text-6xl font-bold mb-4">Welcome</h1>
             <h2 className="text-4xl font-semibold mb-8">to</h2>
             <h3 className="text-5xl font-bold">Complaint Management</h3>
@@ -98,7 +110,7 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/3 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md">
+          <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-between mb-6">
@@ -183,14 +195,8 @@ export default function LoginPage() {
 
           {/* Footer Links */}
           <div className="mt-8 text-center space-y-4">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-blue-600 hover:underline font-medium">
-                Sign up
-              </Link>
-            </p>
             <p className="text-xs text-gray-500">
-              © 2025 Complaint Management System. All rights reserved.
+              © 2025 Tagum City Government - Barangay Complaint System. All rights reserved.
             </p>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Badge } from "./ui/badge"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Input } from "./ui/input"
@@ -39,6 +39,7 @@ export function ComplaintSubmissionForm() {
   const [classification, setClassification] = useState(null)
   const [isClassifying, setIsClassifying] = useState(false)
   const [classificationSource, setClassificationSource] = useState(null)
+  const [submissionData, setSubmissionData] = useState(null)
   const SHOW_INLINE_ANALYSIS = false
 
   // Update user_id when user changes
@@ -108,18 +109,7 @@ export function ComplaintSubmissionForm() {
     }
   }
 
-  // Inline auto-analysis disabled to avoid stretching the form; analysis runs on submit in backend
-  useEffect(() => {
-    if (!SHOW_INLINE_ANALYSIS) return
-    const timer = setTimeout(async () => {
-      if (formData.title && formData.description && formData.title.length > 5 && formData.description.length > 10) {
-        await classifyComplaint()
-      }
-    }, 2000)
-    return () => clearTimeout(timer)
-  }, [formData.title, formData.description])
-
-  const classifyComplaint = async () => {
+  const classifyComplaint = useCallback(async () => {
     if (!formData.title || !formData.description) return
 
     setIsClassifying(true)
@@ -146,7 +136,18 @@ export function ComplaintSubmissionForm() {
     } finally {
       setIsClassifying(false)
     }
-  }
+  }, [formData.title, formData.description, formData.location_address])
+
+  // Inline auto-analysis disabled to avoid stretching the form; analysis runs on submit in backend
+  useEffect(() => {
+    if (!SHOW_INLINE_ANALYSIS) return
+    const timer = setTimeout(async () => {
+      if (formData.title && formData.description && formData.title.length > 5 && formData.description.length > 10) {
+        await classifyComplaint()
+      }
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [formData.title, formData.description, SHOW_INLINE_ANALYSIS, classifyComplaint])
 
   const handleSubmit = async () => {
     setSubmitError("")
@@ -183,6 +184,7 @@ export function ComplaintSubmissionForm() {
             console.error('Attachment upload failed:', e)
           }
         }
+        setSubmissionData(result.data)
         setIsSubmitted(true)
         setCurrentStep(5)
       } else {
@@ -213,27 +215,81 @@ export function ComplaintSubmissionForm() {
 
   if (isSubmitted) {
     return (
-      <Card className="max-w-2xl mx-auto border-2 border-primary">
-        <CardContent className="p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-primary mb-2">Complaint Submitted Successfully!</h2>
-          <p className="text-muted-foreground mb-6">
-            Your complaint has been received and will be reviewed by barangay officials. 
-            {user ? 'You will receive updates on the status of your complaint.' : 
-             'If you provided contact information, you may receive updates on the status of your complaint.'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={() => window.location.reload()} className="bg-accent hover:bg-accent/90">
-              Submit Another Complaint
-            </Button>
-            <Link href="/complaints">
-              <Button variant="outline" className="border-primary text-primary">
-                Go to Manage Complaints
-              </Button>
-            </Link>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        {/* Progress Steps */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            {[1, 2, 3, 4].map((step) => (
+              <div key={step} className="flex items-center">
+                <div
+                  className={cn(
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2",
+                    "bg-primary text-primary-foreground border-primary"
+                  )}
+                >
+                  {step}
+                </div>
+                {step < 4 && <div className={cn("h-1 w-12 sm:w-20 mx-2 sm:mx-3", "bg-primary")} />}
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
+            <span className="hidden sm:inline">Complaint Details</span>
+            <span className="sm:hidden">Details</span>
+            <span className="hidden sm:inline">Contact Info (Optional)</span>
+            <span className="sm:hidden">Contact</span>
+            <span className="hidden sm:inline">Add Evidence</span>
+            <span className="sm:hidden">Evidence</span>
+            <span className="hidden sm:inline">Location & Submit</span>
+            <span className="sm:hidden">Submit</span>
+          </div>
+        </div>
+
+        {/* Form Container with Consistent Height */}
+        <div className="min-h-[500px] sm:min-h-[600px]">
+          <Card className="border-2 border-primary h-full flex flex-col">
+            <CardContent className="p-8 text-center flex-1 flex flex-col justify-center">
+              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-primary mb-2">Complaint Submitted Successfully!</h2>
+              <p className="text-muted-foreground mb-6">
+                Your complaint has been received and will be reviewed by barangay officials.
+              </p>
+              
+              {/* Tracking Information */}
+              {submissionData && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                  <h3 className="font-semibold text-gray-900 mb-3">Your Complaint Details:</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Reference Number:</span>
+                      <span className="font-mono font-medium">{submissionData.reference_number}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tracking Code:</span>
+                      <span className="font-mono font-medium text-blue-600">{submissionData.tracking_code}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                    <p className="text-sm text-blue-800">
+                      <strong>Save your tracking code:</strong> Use <span className="font-mono">{submissionData.tracking_code}</span> to track your complaint status at any time.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-center mt-auto">
+                {submissionData && (
+                  <Link href={`/track?code=${submissionData.tracking_code}`}>
+                    <Button className="bg-accent hover:bg-accent/90">
+                      Track This Complaint
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     )
   }
 

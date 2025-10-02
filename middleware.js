@@ -40,13 +40,15 @@ export async function middleware(request) {
   const publicRoutes = [
     '/',
     '/login',
-    '/register',
+    '/track',
     '/api/auth/login',
-    '/api/auth/register',
     '/api/complaints',
     '/api/complaints/classify',
+    '/api/complaints/with-attachments',
     '/api/categories',
-    '/api/barangays'
+    '/api/barangays',
+    '/api/track',
+    '/api/reports/generate'
   ]
   
   // Check if the current path is a public route
