@@ -13,7 +13,6 @@ import {
   ChevronLeft, 
   ChevronRight,
   Eye,
-  MessageSquare,
   Calendar,
   Building
 } from 'lucide-react'
@@ -316,29 +315,30 @@ export default function CommunityStories() {
 
       {/* Story Detail Modal */}
       <Dialog open={!!selectedStory} onOpenChange={() => setSelectedStory(null)}>
-        <DialogContent className="max-w-md mx-auto">
+        <DialogContent className="max-w-[95vw] w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto max-h-[95vh] overflow-y-auto">
           {selectedStory && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between">
-                  <span className="truncate">{selectedStory.title}</span>
+              <DialogHeader className="pb-4">
+                <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <span className="text-base sm:text-lg font-semibold pr-2 break-words">{selectedStory.title}</span>
                   <Badge 
                     variant="outline" 
                     style={{ borderColor: selectedStory.categoryColor }}
+                    className="self-start sm:self-center flex-shrink-0"
                   >
                     {selectedStory.category}
                   </Badge>
                 </DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Image Carousel */}
                 <div className="relative">
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="aspect-square sm:aspect-video bg-gray-100 rounded-lg overflow-hidden max-h-[50vh] sm:max-h-[60vh]">
                     <img
                       src={selectedStory.attachments[currentImageIndex]?.url || '/placeholder.jpg'}
                       alt={selectedStory.attachments[currentImageIndex]?.caption}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain sm:object-cover"
                     />
                   </div>
                   
@@ -347,18 +347,18 @@ export default function CommunityStories() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                        className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 h-8 w-8 sm:h-10 sm:w-10 p-0"
                         onClick={prevImage}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                        className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 h-8 w-8 sm:h-10 sm:w-10 p-0"
                         onClick={nextImage}
                       >
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       
                       {/* Image Indicators */}
@@ -366,7 +366,7 @@ export default function CommunityStories() {
                         {selectedStory.attachments.map((_, index) => (
                           <div
                             key={index}
-                            className={`w-2 h-2 rounded-full ${
+                            className={`w-2 h-2 rounded-full transition-colors ${
                               index === currentImageIndex ? 'bg-white' : 'bg-white/50'
                             }`}
                           />
@@ -377,59 +377,48 @@ export default function CommunityStories() {
                 </div>
                 
                 {/* Story Details */}
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{selectedStory.description}</p>
+                <div className="space-y-3 sm:space-y-4">
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{selectedStory.description}</p>
                   
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="truncate">{selectedStory.location}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="truncate">{selectedStory.submittedBy}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Building className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <Building className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="truncate">{selectedStory.department}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>Est. {selectedStory.estimatedDays} days</span>
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="whitespace-nowrap">Est. {selectedStory.estimatedDays} days</span>
                     </div>
                   </div>
                   
                   {/* Status and Priority */}
-                  <div className="flex items-center justify-between">
-                    <Badge className={`${getStatusColor(selectedStory.status)} text-white`}>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                    <Badge className={`${getStatusColor(selectedStory.status)} text-white text-xs sm:text-sm px-2 py-1`}>
                       {selectedStory.status.replace('_', ' ').toUpperCase()}
                     </Badge>
                     
-                    <Badge className={`${getPriorityColor(selectedStory.priority)} text-white`}>
+                    <Badge className={`${getPriorityColor(selectedStory.priority)} text-white text-xs sm:text-sm px-2 py-1`}>
                       {selectedStory.priority.toUpperCase()} PRIORITY
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Submitted {formatTimeAgo(selectedStory.createdAt)}
+                  <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                    <span>Submitted {formatTimeAgo(selectedStory.createdAt)}</span>
                   </div>
                 </div>
                 
-                {/* Action Buttons */}
-                <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Comments
-                  </Button>
-                </div>
               </div>
             </>
           )}

@@ -8,16 +8,15 @@ import { Switch } from "../../components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Settings, Bell, Palette, Save, User } from "lucide-react"
 import { useUser } from "../../lib/user-context"
+import { useTheme } from "../../components/theme-provider"
 
 const SettingsPage = () => {
   const { user, loading } = useUser()
+  const { theme, setTheme } = useTheme()
   const [settings, setSettings] = useState({
     notifications: {
       email: true,
       push: true
-    },
-    appearance: {
-      theme: "system"
     }
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -50,17 +49,11 @@ const SettingsPage = () => {
     }
   }
 
-  const handleAppearanceChange = (key, value) => {
+  const handleThemeChange = (newTheme) => {
     try {
-      setSettings(prev => ({
-        ...prev,
-        appearance: {
-          ...prev.appearance,
-          [key]: value
-        }
-      }))
+      setTheme(newTheme)
     } catch (error) {
-      console.error('Error updating appearance setting:', error)
+      console.error('Error updating theme:', error)
     }
   }
 
@@ -157,8 +150,8 @@ const SettingsPage = () => {
             <div className="space-y-2">
               <Label htmlFor="theme">Theme</Label>
               <Select
-                value={settings.appearance.theme}
-                onValueChange={(value) => handleAppearanceChange('theme', value)}
+                value={theme}
+                onValueChange={handleThemeChange}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -169,6 +162,9 @@ const SettingsPage = () => {
                   <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-sm text-muted-foreground">
+                Choose your preferred theme or use system setting
+              </p>
             </div>
           </CardContent>
         </Card>

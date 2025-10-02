@@ -12,8 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import CommunityStories from "../../components/community-stories"
 import {
   Search,
-  Eye,
-  MessageSquare,
   Clock,
   AlertTriangle,
   TrendingUp,
@@ -444,7 +442,6 @@ export default function OfficialsDashboard() {
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -508,16 +505,6 @@ export default function OfficialsDashboard() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Est. {complaint.estimated_resolution_days} days
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" title="View Details">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" title="View Comments">
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
