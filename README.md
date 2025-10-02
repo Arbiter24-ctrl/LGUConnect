@@ -92,3 +92,11 @@ Barangay Complaint Management
 > - npm install
 
 > - npm run dev
+
+Database Wipe
+
+> - node simple-wipe.js
+
+jPDF Script
+
+> - npm install jspdf jspdf-autotable
